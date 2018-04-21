@@ -45,6 +45,7 @@ option(ENABLE_SIGNALS "Build with UNIX signals" TRUE)
 option(ENABLE_STACKTRACE "Enable stack trace when crashing" FALSE)
 option(ENABLE_DECODE "Build with libsigrokdecode" TRUE)
 option(ENABLE_TESTS "Enable unit tests" TRUE)
+option(ENABLE_ZSTD "Enable use of libzstd" FALSE)
 option(STATIC_PKGDEPS_LIBS "Statically link to (pkg-config) libraries" FALSE)
 
 if(WIN32)
@@ -413,6 +414,10 @@ if(ENABLE_STACKTRACE)
 	add_definitions(-DENABLE_STACKTRACE)
 endif()
 
+if(ENABLE_ZSTD)
+	add_definitions(-DENABLE_ZSTD)
+endif()
+
 #===============================================================================
 #= Global Include Directories
 #-------------------------------------------------------------------------------
@@ -467,6 +472,10 @@ endif()
 if(ENABLE_STACKTRACE)
 	# Needed to resolve dladdr.
 	list(APPEND PULSEVIEW_LINK_LIBS "-ldl")
+endif()
+
+if(ENABLE_ZSTD)
+	list(APPEND PULSEVIEW_LINK_LIBS "-lzstd")
 endif()
 
 if(ANDROID)
