@@ -53,6 +53,10 @@
 #include <libsigrokdecode/libsigrokdecode.h>
 #endif
 
+#ifdef ENABLE_ZSTD
+#include <zstd.h>
+#endif
+
 using std::shared_ptr;
 
 namespace pv {
@@ -385,6 +389,16 @@ QWidget *Settings::get_about_page(QWidget *parent) const
 	s.append(QString("<tr><td><i>- Host</i></td><td>%1</td></tr>")
 		.arg(QString(host)));
 	g_free(host);
+#endif
+
+#ifdef ENABLE_ZSTD
+	const int zstd_ver_major = ZSTD_versionNumber() / 100 / 100;
+	const int zstd_ver_minor = (ZSTD_versionNumber() / 100) % 100;
+	const int zstd_ver_rel   = ZSTD_versionNumber() % 100;
+
+	s.append(QString("<tr><td><i>%1</i></td><td>%2.%3.%4</td></tr>")
+		.arg(QString("libzstd"), QString::number(zstd_ver_major),
+			QString::number(zstd_ver_minor), QString::number(zstd_ver_rel)));
 #endif
 
 	s.append("<tr><td colspan=\"2\"></td></tr>");
