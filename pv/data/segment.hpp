@@ -74,8 +74,6 @@ public:
 	void set_complete();
 	bool is_complete() const;
 
-	void free_unused_memory();
-
 protected:
 	void append_single_sample(void *data);
 	void append_samples(void *data, uint64_t samples);

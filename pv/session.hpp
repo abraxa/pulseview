@@ -198,8 +198,6 @@ private:
 
 	void sample_thread_proc(function<void (const QString)> error_handler);
 
-	void free_unused_memory();
-
 	void signal_new_segment();
 	void signal_segment_completed();
 
