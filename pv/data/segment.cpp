@@ -37,9 +37,12 @@ namespace pv {
 namespace data {
 
 const uint64_t Segment::MaxChunkSize = 10 * 1024 * 1024;  /* 10MiB */
+const uint64_t Segment::NotifyBlockSize = 2 * MaxChunkSize;
 const int Segment::CompressionLevel = 3;
 
-Segment::Segment(uint32_t segment_id, uint64_t samplerate, unsigned int unit_size) :
+Segment::Segment(SignalData& owner, uint32_t segment_id, uint64_t samplerate,
+	unsigned int unit_size) :
+	owner_(owner),
 	segment_id_(segment_id),
 #ifdef ENABLE_ZSTD
 	input_chunk_(nullptr),
@@ -47,6 +50,8 @@ Segment::Segment(uint32_t segment_id, uint64_t samplerate, unsigned int unit_siz
 	output_chunk_num_(INT_MAX),
 #endif
 	sample_count_(0),
+	first_new_sample_(0),
+	new_samples_(0),
 	start_time_(0),
 	samplerate_(samplerate),
 	unit_size_(unit_size),
@@ -135,11 +140,26 @@ void Segment::set_complete()
 		delete[] input_chunk_;
 	}
 #endif
+
+	if (new_samples_ > 0)
+		signal_new_samples();
 }
 
 bool Segment::is_complete() const
 {
 	return is_complete_;
+}
+
+void Segment::signal_new_samples()
+{
+	if (new_samples_ == 0)
+		return;
+
+	owner_.signal_samples_added(this, first_new_sample_,
+		first_new_sample_ + new_samples_);
+
+	first_new_sample_ = first_new_sample_ + new_samples_ + 1;
+	new_samples_ = 0;
 }
 
 #ifdef ENABLE_ZSTD
@@ -239,6 +259,10 @@ void Segment::append_samples(void* data, uint64_t samples)
 	} while (remaining_samples > 0);
 
 	sample_count_ += samples;
+	new_samples_ += samples;
+
+	if (new_samples_ >= NotifyBlockSize)
+		signal_new_samples();
 }
 
 void Segment::get_raw_samples(uint64_t start, uint64_t count,

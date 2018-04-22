@@ -33,6 +33,8 @@
 #include <zstd.h>
 #endif
 
+#include "signaldata.hpp"
+
 using std::recursive_mutex;
 using std::vector;
 
@@ -58,10 +60,12 @@ class Segment : public QObject
 
 private:
 	static const uint64_t MaxChunkSize;
+	static const uint64_t NotifyBlockSize;
 	static const int CompressionLevel;
 
 public:
-	Segment(uint32_t segment_id, uint64_t samplerate, unsigned int unit_size);
+	Segment(SignalData& owner, uint32_t segment_id, uint64_t samplerate,
+		unsigned int unit_size);
 
 	virtual ~Segment();
 
@@ -79,6 +83,8 @@ public:
 	void set_complete();
 	bool is_complete() const;
 
+	void signal_new_samples();
+
 protected:
 #ifdef ENABLE_ZSTD
 	void compress_input_chunk();
@@ -86,6 +92,8 @@ protected:
 #endif
 	void append_samples(void *data, uint64_t samples);
 	void get_raw_samples(uint64_t start, uint64_t count, uint8_t *dest);
+
+	SignalData& owner_;
 
 	uint32_t segment_id_;
 	mutable recursive_mutex mutex_;
@@ -102,6 +110,7 @@ protected:
 
 	uint64_t used_samples_, unused_samples_;
 	uint64_t sample_count_;
+	uint64_t first_new_sample_, new_samples_;
 	pv::util::Timestamp start_time_;
 	double samplerate_;
 	uint64_t chunk_size_;

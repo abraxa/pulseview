@@ -79,7 +79,7 @@ uint64_t Logic::max_sample_count() const
 	return l;
 }
 
-void Logic::notify_samples_added(QObject* segment, uint64_t start_sample,
+void Logic::signal_samples_added(QObject* segment, uint64_t start_sample,
 	uint64_t end_sample)
 {
 	samples_added(segment, start_sample, end_sample);

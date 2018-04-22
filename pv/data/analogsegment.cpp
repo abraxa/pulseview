@@ -50,8 +50,7 @@ const float AnalogSegment::LogEnvelopeScaleFactor = logf(EnvelopeScaleFactor);
 const uint64_t AnalogSegment::EnvelopeDataUnit = 64 * 1024;	// bytes
 
 AnalogSegment::AnalogSegment(Analog& owner, uint32_t segment_id, uint64_t samplerate) :
-	Segment(segment_id, samplerate, sizeof(float)),
-	owner_(owner),
+	Segment(owner, segment_id, samplerate, sizeof(float)),
 	min_value_(0),
 	max_value_(0)
 {
@@ -89,13 +88,6 @@ void AnalogSegment::append_interleaved_samples(const float *data,
 	// Generate the first mip-map from the data
 	append_payload_to_envelope_levels(prev_sample_count, prev_sample_count + sample_count,
 		deint_data.get());
-
-	if (sample_count > 1)
-		owner_.notify_samples_added(this, prev_sample_count + 1,
-			prev_sample_count + 1 + sample_count);
-	else
-		owner_.notify_samples_added(this, prev_sample_count + 1,
-			prev_sample_count + 1);
 }
 
 void AnalogSegment::get_samples(int64_t start_sample, int64_t end_sample,
@@ -267,7 +259,7 @@ void AnalogSegment::append_payload_to_envelope_levels(uint64_t p_start_sample,
 
 	// Notify if the min or max value changed
 	if ((old_min_value != min_value_) || (old_max_value != max_value_))
-		owner_.min_max_changed(min_value_, max_value_);
+		static_cast<Analog&>(owner_).min_max_changed(min_value_, max_value_);
 }
 
 } // namespace data

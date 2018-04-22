@@ -56,7 +56,7 @@ public:
 
 	uint64_t max_sample_count() const;
 
-	void notify_samples_added(QObject* segment, uint64_t start_sample,
+	virtual void signal_samples_added(QObject* segment, uint64_t start_sample,
 		uint64_t end_sample);
 
 Q_SIGNALS:

@@ -94,8 +94,6 @@ private:
 		const float *payload);
 
 private:
-	Analog& owner_;
-
 	struct Envelope envelope_levels_[ScaleStepCount];
 
 	float min_value_, max_value_;

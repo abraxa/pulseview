@@ -50,6 +50,10 @@ public:
 	virtual void clear() = 0;
 
 	virtual uint64_t max_sample_count() const = 0;
+
+	virtual void signal_samples_added(QObject* segment, uint64_t start_sample,
+		uint64_t end_sample) = 0;
+
 };
 
 } // namespace data
