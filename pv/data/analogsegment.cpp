@@ -19,13 +19,14 @@
 
 #include <extdef.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
 
-#include <algorithm>
+#include <QDebug>
 
 #include "analog.hpp"
 #include "analogsegment.hpp"
@@ -86,7 +87,8 @@ void AnalogSegment::append_interleaved_samples(const float *data,
 	append_samples(deint_data.get(), sample_count);
 
 	// Generate the first mip-map from the data
-	append_payload_to_envelope_levels();
+	append_payload_to_envelope_levels(prev_sample_count, prev_sample_count + sample_count,
+		deint_data.get());
 
 	if (sample_count > 1)
 		owner_.notify_samples_added(this, prev_sample_count + 1,
@@ -114,21 +116,6 @@ void AnalogSegment::get_samples(int64_t start_sample, int64_t end_sample,
 const pair<float, float> AnalogSegment::get_min_max() const
 {
 	return make_pair(min_value_, max_value_);
-}
-
-SegmentAnalogDataIterator* AnalogSegment::begin_sample_iteration(uint64_t start)
-{
-	return (SegmentAnalogDataIterator*)begin_raw_sample_iteration(start);
-}
-
-void AnalogSegment::continue_sample_iteration(SegmentAnalogDataIterator* it, uint64_t increase)
-{
-	Segment::continue_raw_sample_iteration((SegmentRawDataIterator*)it, increase);
-}
-
-void AnalogSegment::end_sample_iteration(SegmentAnalogDataIterator* it)
-{
-	Segment::end_raw_sample_iteration((SegmentRawDataIterator*)it);
 }
 
 void AnalogSegment::get_envelope_section(EnvelopeSection &s,
@@ -166,12 +153,13 @@ void AnalogSegment::reallocate_envelope(Envelope &e)
 	}
 }
 
-void AnalogSegment::append_payload_to_envelope_levels()
+void AnalogSegment::append_payload_to_envelope_levels(uint64_t p_start_sample,
+	uint64_t p_end_sample, const float *payload)
 {
 	Envelope &e0 = envelope_levels_[0];
 	uint64_t prev_length;
 	EnvelopeSample *dest_ptr;
-	SegmentRawDataIterator* it;
+	const float* payload_ptr;
 
 	// Expand the data buffer to fit the new samples
 	prev_length = e0.length;
@@ -179,17 +167,16 @@ void AnalogSegment::append_payload_to_envelope_levels()
 
 	// Calculate min/max values in case we have too few samples for an envelope
 	const float old_min_value = min_value_, old_max_value = max_value_;
+	payload_ptr = payload;
 	if (sample_count_ < EnvelopeScaleFactor) {
-		it = begin_raw_sample_iteration(0);
 		for (uint64_t i = 0; i < sample_count_; i++) {
-			const float sample = *((float*)it->value);
+			const float sample = *(payload_ptr);
 			if (sample < min_value_)
 				min_value_ = sample;
 			if (sample > max_value_)
 				max_value_ = sample;
-			continue_raw_sample_iteration(it, 1);
+			payload_ptr++;
 		}
-		end_raw_sample_iteration(it);
 	}
 
 	// Break off if there are no new samples to compute
@@ -204,9 +191,29 @@ void AnalogSegment::append_payload_to_envelope_levels()
 	uint64_t start_sample = prev_length * EnvelopeScaleFactor;
 	uint64_t end_sample = e0.length * EnvelopeScaleFactor;
 
-	it = begin_raw_sample_iteration(start_sample);
+	const int32_t start_sample_delta = p_start_sample - start_sample;
+
+	#ifndef NDEBUG
+	if (start_sample_delta < 0) {
+		qDebug() << "ERROR: append_payload_to_envelope_levels() encountered " <<
+			"start sample offset:" << start_sample << p_start_sample <<
+			"; can't adjust by" << start_sample_delta << "samples";
+	}
+	if (end_sample > p_end_sample) {
+		qDebug() << "ERROR: append_payload_to_mipmap() encountered out-of-bounds condition:" <<
+			end_sample << p_end_sample;
+		return;
+	}
+	#else
+	(void)p_end_sample;
+	#endif
+
+	payload_ptr = payload;
+	if (start_sample_delta > 0)
+		payload_ptr += start_sample_delta;
+
 	for (uint64_t i = start_sample; i < end_sample; i += EnvelopeScaleFactor) {
-		const float* samples = (float*)it->value;
+		const float* samples = payload_ptr;
 
 		const EnvelopeSample sub_sample = {
 			*min_element(samples, samples + EnvelopeScaleFactor),
@@ -218,10 +225,9 @@ void AnalogSegment::append_payload_to_envelope_levels()
 		if (sub_sample.max > max_value_)
 			max_value_ = sub_sample.max;
 
-		continue_raw_sample_iteration(it, EnvelopeScaleFactor);
+		payload_ptr += EnvelopeScaleFactor;
 		*dest_ptr++ = sub_sample;
 	}
-	end_raw_sample_iteration(it);
 
 	// Compute higher level mipmaps
 	for (unsigned int level = 1; level < ScaleStepCount; level++) {

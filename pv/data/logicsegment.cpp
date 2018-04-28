@@ -24,6 +24,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <QDebug>
+
 #include "logic.hpp"
 #include "logicsegment.hpp"
 
@@ -156,7 +158,8 @@ void LogicSegment::append_payload(void *data, uint64_t data_size)
 	append_samples(data, sample_count);
 
 	// Generate the first mip-map from the data
-	append_payload_to_mipmap();
+	append_payload_to_mipmap(prev_sample_count, prev_sample_count + sample_count,
+		(const uint8_t*)data);
 
 	if (sample_count > 1)
 		owner_.notify_samples_added(this, prev_sample_count + 1,
@@ -181,21 +184,6 @@ void LogicSegment::get_samples(int64_t start_sample,
 	get_raw_samples(start_sample, (end_sample - start_sample), dest);
 }
 
-SegmentLogicDataIterator* LogicSegment::begin_sample_iteration(uint64_t start)
-{
-	return (SegmentLogicDataIterator*)begin_raw_sample_iteration(start);
-}
-
-void LogicSegment::continue_sample_iteration(SegmentLogicDataIterator* it, uint64_t increase)
-{
-	Segment::continue_raw_sample_iteration((SegmentRawDataIterator*)it, increase);
-}
-
-void LogicSegment::end_sample_iteration(SegmentLogicDataIterator* it)
-{
-	Segment::end_raw_sample_iteration((SegmentRawDataIterator*)it);
-}
-
 void LogicSegment::reallocate_mipmap_level(MipMapLevel &m)
 {
 	lock_guard<recursive_mutex> lock(mutex_);
@@ -212,12 +200,12 @@ void LogicSegment::reallocate_mipmap_level(MipMapLevel &m)
 	}
 }
 
-void LogicSegment::append_payload_to_mipmap()
+void LogicSegment::append_payload_to_mipmap(uint64_t p_start_sample, uint64_t p_end_sample,
+	const uint8_t *payload)
 {
 	MipMapLevel &m0 = mip_map_[0];
 	uint64_t prev_length;
 	uint8_t *dest_ptr;
-	SegmentRawDataIterator* it;
 	uint64_t accumulator;
 	unsigned int diff_counter;
 
@@ -237,23 +225,42 @@ void LogicSegment::append_payload_to_mipmap()
 	uint64_t start_sample = prev_length * MipMapScaleFactor;
 	uint64_t end_sample = m0.length * MipMapScaleFactor;
 
-	it = begin_raw_sample_iteration(start_sample);
+	const int32_t start_sample_delta = p_start_sample - start_sample;
+
+	#ifndef NDEBUG
+	if (start_sample_delta < 0) {
+		qDebug() << "ERROR: append_payload_to_mipmap() encountered start sample offset:" <<
+			start_sample << p_start_sample << "; can't adjust by" << start_sample_delta <<
+			"samples";
+	}
+	if (end_sample > p_end_sample) {
+		qDebug() << "ERROR: append_payload_to_mipmap() encountered out-of-bounds condition:" <<
+			end_sample << p_end_sample;
+		return;
+	}
+	#else
+	(void)p_end_sample;
+	#endif
+
+	const uint8_t* payload_ptr = payload;
+	if (start_sample_delta > 0)
+		payload_ptr += start_sample_delta * unit_size_;
+
 	for (uint64_t i = start_sample; i < end_sample;) {
 		// Accumulate transitions which have occurred in this sample
 		accumulator = 0;
 		diff_counter = MipMapScaleFactor;
 		while (diff_counter-- > 0) {
-			const uint64_t sample = unpack_sample(it->value);
+			const uint64_t sample = unpack_sample(payload_ptr);
 			accumulator |= last_append_sample_ ^ sample;
 			last_append_sample_ = sample;
-			continue_raw_sample_iteration(it, 1);
 			i++;
+			payload_ptr += unit_size_;
 		}
 
 		pack_sample(dest_ptr, accumulator);
 		dest_ptr += unit_size_;
 	}
-	end_raw_sample_iteration(it);
 
 	// Compute higher level mipmaps
 	for (unsigned int level = 1; level < ScaleStepCount; level++) {

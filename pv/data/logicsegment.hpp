@@ -48,12 +48,6 @@ namespace data {
 
 class Logic;
 
-typedef struct {
-	uint64_t sample_index, chunk_num, chunk_offs;
-	uint8_t* chunk;
-	uint8_t* value;
-} SegmentLogicDataIterator;
-
 class LogicSegment : public Segment
 {
 	Q_OBJECT
@@ -86,17 +80,14 @@ public:
 
 	void get_samples(int64_t start_sample, int64_t end_sample, uint8_t* dest) const;
 
-	SegmentLogicDataIterator* begin_sample_iteration(uint64_t start);
-	void continue_sample_iteration(SegmentLogicDataIterator* it, uint64_t increase);
-	void end_sample_iteration(SegmentLogicDataIterator* it);
-
 private:
 	uint64_t unpack_sample(const uint8_t *ptr) const;
 	void pack_sample(uint8_t *ptr, uint64_t value);
 
 	void reallocate_mipmap_level(MipMapLevel &m);
 
-	void append_payload_to_mipmap();
+	void append_payload_to_mipmap(uint64_t p_start_sample, uint64_t p_end_sample,
+		const uint8_t *payload);
 
 	uint64_t get_unpacked_sample(uint64_t index) const;
 

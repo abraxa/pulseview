@@ -38,12 +38,6 @@ namespace data {
 
 class Analog;
 
-typedef struct {
-	uint64_t sample_index, chunk_num, chunk_offs;
-	uint8_t* chunk;
-	float* value;
-} SegmentAnalogDataIterator;
-
 class AnalogSegment : public Segment
 {
 	Q_OBJECT
@@ -90,17 +84,14 @@ public:
 
 	const pair<float, float> get_min_max() const;
 
-	SegmentAnalogDataIterator* begin_sample_iteration(uint64_t start);
-	void continue_sample_iteration(SegmentAnalogDataIterator* it, uint64_t increase);
-	void end_sample_iteration(SegmentAnalogDataIterator* it);
-
 	void get_envelope_section(EnvelopeSection &s,
 		uint64_t start, uint64_t end, float min_length) const;
 
 private:
 	void reallocate_envelope(Envelope &e);
 
-	void append_payload_to_envelope_levels();
+	void append_payload_to_envelope_levels(uint64_t p_start_sample, uint64_t p_end_sample,
+		const float *payload);
 
 private:
 	Analog& owner_;

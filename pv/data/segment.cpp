@@ -39,8 +39,6 @@ Segment::Segment(uint32_t segment_id, uint64_t samplerate, unsigned int unit_siz
 	start_time_(0),
 	samplerate_(samplerate),
 	unit_size_(unit_size),
-	iterator_count_(0),
-	mem_optimization_requested_(false),
 	is_complete_(false)
 {
 	lock_guard<recursive_mutex> lock(mutex_);
@@ -109,12 +107,6 @@ bool Segment::is_complete() const
 void Segment::free_unused_memory()
 {
 	lock_guard<recursive_mutex> lock(mutex_);
-
-	// Do not mess with the data chunks if we have iterators pointing at them
-	if (iterator_count_ > 0) {
-		mem_optimization_requested_ = true;
-		return;
-	}
 
 	// No more data will come in, so re-create the last chunk accordingly
 	uint8_t* resized_chunk = new uint8_t[used_samples_ * unit_size_];
@@ -216,53 +208,6 @@ void Segment::get_raw_samples(uint64_t start, uint64_t count,
 
 		chunk_num++;
 		chunk_offs = 0;
-	}
-}
-
-SegmentRawDataIterator* Segment::begin_raw_sample_iteration(uint64_t start)
-{
-	SegmentRawDataIterator* it = new SegmentRawDataIterator;
-
-	assert(start < sample_count_);
-
-	iterator_count_++;
-
-	it->sample_index = start;
-	it->chunk_num = (start * unit_size_) / chunk_size_;
-	it->chunk_offs = (start * unit_size_) % chunk_size_;
-	it->chunk = data_chunks_[it->chunk_num];
-	it->value = it->chunk + it->chunk_offs;
-
-	return it;
-}
-
-void Segment::continue_raw_sample_iteration(SegmentRawDataIterator* it, uint64_t increase)
-{
-	// Fail gracefully if we are asked to deliver data we don't have
-	if (it->sample_index > sample_count_)
-		return;
-
-	it->sample_index += increase;
-	it->chunk_offs += (increase * unit_size_);
-
-	if (it->chunk_offs > (chunk_size_ - 1)) {
-		it->chunk_num++;
-		it->chunk_offs -= chunk_size_;
-		it->chunk = data_chunks_[it->chunk_num];
-	}
-
-	it->value = it->chunk + it->chunk_offs;
-}
-
-void Segment::end_raw_sample_iteration(SegmentRawDataIterator* it)
-{
-	delete it;
-
-	iterator_count_--;
-
-	if ((iterator_count_ == 0) && mem_optimization_requested_) {
-		mem_optimization_requested_ = false;
-		free_unused_memory();
 	}
 }
 

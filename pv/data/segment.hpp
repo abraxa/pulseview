@@ -48,12 +48,6 @@ struct MaxSize32MultiIterated;
 namespace pv {
 namespace data {
 
-typedef struct {
-	uint64_t sample_index, chunk_num, chunk_offs;
-	uint8_t* chunk;
-	uint8_t* value;
-} SegmentRawDataIterator;
-
 class Segment : public QObject
 {
 	Q_OBJECT
@@ -87,10 +81,6 @@ protected:
 	void append_samples(void *data, uint64_t samples);
 	void get_raw_samples(uint64_t start, uint64_t count, uint8_t *dest) const;
 
-	SegmentRawDataIterator* begin_raw_sample_iteration(uint64_t start);
-	void continue_raw_sample_iteration(SegmentRawDataIterator* it, uint64_t increase);
-	void end_raw_sample_iteration(SegmentRawDataIterator* it);
-
 	uint32_t segment_id_;
 	mutable recursive_mutex mutex_;
 	vector<uint8_t*> data_chunks_;
@@ -101,8 +91,6 @@ protected:
 	double samplerate_;
 	uint64_t chunk_size_;
 	unsigned int unit_size_;
-	int iterator_count_;
-	bool mem_optimization_requested_;
 	bool is_complete_;
 
 	friend struct SegmentTest::SmallSize8Single;
