@@ -78,7 +78,7 @@ public:
 	void append_payload(shared_ptr<sigrok::Logic> logic);
 	void append_payload(void *data, uint64_t data_size);
 
-	void get_samples(int64_t start_sample, int64_t end_sample, uint8_t* dest) const;
+	void get_samples(int64_t start_sample, int64_t end_sample, uint8_t* dest);
 
 private:
 	uint64_t unpack_sample(const uint8_t *ptr) const;
@@ -89,7 +89,7 @@ private:
 	void append_payload_to_mipmap(uint64_t p_start_sample, uint64_t p_end_sample,
 		const uint8_t *payload);
 
-	uint64_t get_unpacked_sample(uint64_t index) const;
+	uint64_t get_unpacked_sample(uint64_t index);
 
 public:
 	/**

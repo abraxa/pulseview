@@ -21,20 +21,31 @@
 #include "segment.hpp"
 
 #include <cassert>
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 
+#include <QDebug>
+
 using std::lock_guard;
 using std::min;
+using std::out_of_range;
 using std::recursive_mutex;
+using std::size_t;
 
 namespace pv {
 namespace data {
 
 const uint64_t Segment::MaxChunkSize = 10 * 1024 * 1024;  /* 10MiB */
+const int Segment::CompressionLevel = 3;
 
 Segment::Segment(uint32_t segment_id, uint64_t samplerate, unsigned int unit_size) :
 	segment_id_(segment_id),
+#ifdef ENABLE_ZSTD
+	input_chunk_(nullptr),
+	output_chunk_(nullptr),
+	output_chunk_num_(INT_MAX),
+#endif
 	sample_count_(0),
 	start_time_(0),
 	samplerate_(samplerate),
@@ -44,13 +55,18 @@ Segment::Segment(uint32_t segment_id, uint64_t samplerate, unsigned int unit_siz
 	lock_guard<recursive_mutex> lock(mutex_);
 	assert(unit_size_ > 0);
 
-	// Determine the number of samples we can fit in one chunk
+	// Determine the number of bytes we can fit in one chunk
 	// without exceeding MaxChunkSize
 	chunk_size_ = min(MaxChunkSize, (MaxChunkSize / unit_size_) * unit_size_);
 
+#ifdef ENABLE_ZSTD
+	// Create the input chunk
+	input_chunk_ = new uint8_t[chunk_size_];
+#else
 	// Create the initial chunk
 	current_chunk_ = new uint8_t[chunk_size_];
 	data_chunks_.push_back(current_chunk_);
+#endif
 	used_samples_ = 0;
 	unused_samples_ = chunk_size_ / unit_size_;
 }
@@ -59,8 +75,15 @@ Segment::~Segment()
 {
 	lock_guard<recursive_mutex> lock(mutex_);
 
+#ifdef ENABLE_ZSTD
+	if (input_chunk_)
+		delete[] input_chunk_;
+	if (output_chunk_)
+		delete[] output_chunk_;
+#else
 	for (uint8_t* chunk : data_chunks_)
 		delete[] chunk;
+#endif
 }
 
 uint64_t Segment::get_sample_count() const
@@ -97,6 +120,21 @@ uint32_t Segment::segment_id() const
 void Segment::set_complete()
 {
 	is_complete_ = true;
+
+#ifdef ENABLE_ZSTD
+	// Finalize input operations so that the segment can no longer grow in size
+	if (used_samples_ > 0) {
+		compress_input_chunk();
+		used_samples_ = 0;
+	}
+
+	if (input_chunk_) {
+		input_chunk_ = nullptr;
+		input_chunk_num_ = INT_MAX; // Prevent append_samples() from accessing input_chunk_
+		unused_samples_ = 0;
+		delete[] input_chunk_;
+	}
+#endif
 }
 
 bool Segment::is_complete() const
@@ -104,30 +142,58 @@ bool Segment::is_complete() const
 	return is_complete_;
 }
 
-void Segment::append_single_sample(void *data)
+#ifdef ENABLE_ZSTD
+void Segment::compress_input_chunk()
 {
-	lock_guard<recursive_mutex> lock(mutex_);
+	size_t result = 0;
 
-	// There will always be space for at least one sample in
-	// the current chunk, so we do not need to test for space
+	compressed_chunks_.emplace_back(ZSTD_compressBound(chunk_size_));
+	vector<uint8_t>& compressed_chunk = compressed_chunks_.back();
 
-	memcpy(current_chunk_ + (used_samples_ * unit_size_), data, unit_size_);
-	used_samples_++;
-	unused_samples_--;
+	result = ZSTD_compress(compressed_chunk.data(), compressed_chunk.capacity(),
+		(void*)input_chunk_, used_samples_ * unit_size_, Segment::CompressionLevel);
 
-	if (unused_samples_ == 0) {
-		current_chunk_ = new uint8_t[chunk_size_];
-		data_chunks_.push_back(current_chunk_);
-		used_samples_ = 0;
-		unused_samples_ = chunk_size_ / unit_size_;
+	if (ZSTD_isError(result)) {
+		qDebug() << "ERROR: ZSTD_compress for segment" << segment_id_ << ":" <<
+			QString::fromUtf8(ZSTD_getErrorName(result));
+	} else {
+		// Result contains number of written bytes
+		compressed_chunk.resize(result);
+		compressed_chunk.shrink_to_fit();
 	}
-
-	sample_count_++;
 }
+
+void Segment::decompress_chunk(uint64_t chunk_num, uint8_t *dest) const
+{
+	size_t result = 0;
+
+	try {
+		const vector<uint8_t>& compressed_chunk = compressed_chunks_.at(chunk_num);
+		result = ZSTD_decompress((void*)dest, chunk_size_ * unit_size_,
+			compressed_chunk.data(), compressed_chunk.size());
+
+		if (ZSTD_isError(result)) {
+			qDebug() << "ERROR: ZSTD_decompress for segment" << segment_id_ << ":" <<
+				QString::fromUtf8(ZSTD_getErrorName(result));
+		}
+
+	} catch (out_of_range&) {
+		qDebug() << "ERROR: Chunk" << chunk_num << "out of range for segment" <<
+			segment_id_ << "; max:" << (compressed_chunks_.size() - 1);
+		return;
+	}
+}
+#endif
 
 void Segment::append_samples(void* data, uint64_t samples)
 {
 	lock_guard<recursive_mutex> lock(mutex_);
+
+	if (unused_samples_ == 0) {
+		qDebug() << "WARNING: Failed to append" << samples <<
+			"samples to segment" << segment_id_;
+		return;
+	}
 
 	const uint8_t* data_byte_ptr = (uint8_t*)data;
 	uint64_t remaining_samples = samples;
@@ -144,7 +210,11 @@ void Segment::append_samples(void* data, uint64_t samples)
 			copy_count = unused_samples_;
 		}
 
+#ifdef ENABLE_ZSTD
+		const uint8_t* dest = &(input_chunk_[used_samples_ * unit_size_]);
+#else
 		const uint8_t* dest = &(current_chunk_[used_samples_ * unit_size_]);
+#endif
 		const uint8_t* src = &(data_byte_ptr[data_offset]);
 		memcpy((void*)dest, (void*)src, (copy_count * unit_size_));
 
@@ -154,9 +224,15 @@ void Segment::append_samples(void* data, uint64_t samples)
 		data_offset += (copy_count * unit_size_);
 
 		if (unused_samples_ == 0) {
+#ifdef ENABLE_ZSTD
+			// Compress the chunk's data and file the compressed data away
+			compress_input_chunk();
+			input_chunk_num_++;
+#else
 			// If we're out of memory, this will throw std::bad_alloc
 			current_chunk_ = new uint8_t[chunk_size_];
 			data_chunks_.push_back(current_chunk_);
+#endif
 			used_samples_ = 0;
 			unused_samples_ = chunk_size_ / unit_size_;
 		}
@@ -166,7 +242,7 @@ void Segment::append_samples(void* data, uint64_t samples)
 }
 
 void Segment::get_raw_samples(uint64_t start, uint64_t count,
-	uint8_t* dest) const
+	uint8_t* dest)
 {
 	assert(start < sample_count_);
 	assert(start + count <= sample_count_);
@@ -177,16 +253,35 @@ void Segment::get_raw_samples(uint64_t start, uint64_t count,
 
 	uint8_t* dest_ptr = dest;
 
+#ifdef ENABLE_ZSTD
+	if (!output_chunk_)
+		output_chunk_ = new uint8_t[chunk_size_];
+#endif
+
 	uint64_t chunk_num = (start * unit_size_) / chunk_size_;
 	uint64_t chunk_offs = (start * unit_size_) % chunk_size_;
 
 	while (count > 0) {
+		uint64_t copy_size = min(count * unit_size_, chunk_size_ - chunk_offs);
+
+#ifdef ENABLE_ZSTD
+		// Use input chunk if requested samples haven't been compressed yet
+		// and only update output chunk data if requested chunk differs
+		if (chunk_num == input_chunk_num_) {
+			if (chunk_offs > used_samples_ * unit_size_)
+				qDebug() << "WARNING: Accessing input chunk beyond valid data range";
+			memcpy(dest_ptr, input_chunk_ + chunk_offs, copy_size);
+		} else {
+			if (chunk_num != output_chunk_num_) {
+				decompress_chunk(chunk_num, output_chunk_);
+				output_chunk_num_ = chunk_num;
+			}
+			memcpy(dest_ptr, output_chunk_ + chunk_offs, copy_size);
+		}
+#else
 		const uint8_t* chunk = data_chunks_[chunk_num];
-
-		uint64_t copy_size = min(count * unit_size_,
-			chunk_size_ - chunk_offs);
-
 		memcpy(dest_ptr, chunk + chunk_offs, copy_size);
+#endif
 
 		dest_ptr += copy_size;
 		count -= (copy_size / unit_size_);

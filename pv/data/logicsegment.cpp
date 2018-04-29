@@ -170,7 +170,7 @@ void LogicSegment::append_payload(void *data, uint64_t data_size)
 }
 
 void LogicSegment::get_samples(int64_t start_sample,
-	int64_t end_sample,	uint8_t* dest) const
+	int64_t end_sample,	uint8_t* dest)
 {
 	assert(start_sample >= 0);
 	assert(start_sample <= (int64_t)sample_count_);
@@ -299,7 +299,7 @@ void LogicSegment::append_payload_to_mipmap(uint64_t p_start_sample, uint64_t p_
 	}
 }
 
-uint64_t LogicSegment::get_unpacked_sample(uint64_t index) const
+uint64_t LogicSegment::get_unpacked_sample(uint64_t index)
 {
 	assert(index < sample_count_);
 

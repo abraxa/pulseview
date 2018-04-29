@@ -29,6 +29,10 @@
 
 #include <QObject>
 
+#ifdef ENABLE_ZSTD
+#include <zstd.h>
+#endif
+
 using std::recursive_mutex;
 using std::vector;
 
@@ -54,6 +58,7 @@ class Segment : public QObject
 
 private:
 	static const uint64_t MaxChunkSize;
+	static const int CompressionLevel;
 
 public:
 	Segment(uint32_t segment_id, uint64_t samplerate, unsigned int unit_size);
@@ -75,14 +80,26 @@ public:
 	bool is_complete() const;
 
 protected:
-	void append_single_sample(void *data);
+#ifdef ENABLE_ZSTD
+	void compress_input_chunk();
+	void decompress_chunk(uint64_t chunk_num, uint8_t *dest) const;
+#endif
 	void append_samples(void *data, uint64_t samples);
-	void get_raw_samples(uint64_t start, uint64_t count, uint8_t *dest) const;
+	void get_raw_samples(uint64_t start, uint64_t count, uint8_t *dest);
 
 	uint32_t segment_id_;
 	mutable recursive_mutex mutex_;
+
+#ifdef ENABLE_ZSTD
+	vector< vector<uint8_t> > compressed_chunks_;
+	uint8_t* input_chunk_;
+	uint8_t* output_chunk_;
+	uint64_t input_chunk_num_, output_chunk_num_;
+#else
 	vector<uint8_t*> data_chunks_;
 	uint8_t* current_chunk_;
+#endif
+
 	uint64_t used_samples_, unused_samples_;
 	uint64_t sample_count_;
 	pv::util::Timestamp start_time_;

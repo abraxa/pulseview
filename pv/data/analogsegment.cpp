@@ -99,7 +99,7 @@ void AnalogSegment::append_interleaved_samples(const float *data,
 }
 
 void AnalogSegment::get_samples(int64_t start_sample, int64_t end_sample,
-	float* dest) const
+	float* dest)
 {
 	assert(start_sample >= 0);
 	assert(start_sample < (int64_t)sample_count_);
