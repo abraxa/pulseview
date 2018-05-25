@@ -416,6 +416,7 @@ endif()
 
 if(ENABLE_ZSTD)
 	add_definitions(-DENABLE_ZSTD)
+	add_definitions(-DZSTD_MULTITHREAD)
 endif()
 
 #===============================================================================

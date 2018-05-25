@@ -36,9 +36,10 @@ using std::size_t;
 namespace pv {
 namespace data {
 
-const uint64_t Segment::MaxChunkSize = 10 * 1024 * 1024;  /* 10MiB */
+const uint64_t Segment::MaxChunkSize = 1 * 1024 * 1024;  /* 10MiB */
 const uint64_t Segment::NotifyBlockSize = 2 * MaxChunkSize;
 const int Segment::CompressionLevel = 3;
+const int Segment::WorkerCount = 4;
 
 Segment::Segment(SignalData& owner, uint32_t segment_id, uint64_t samplerate,
 	unsigned int unit_size) :
@@ -67,6 +68,15 @@ Segment::Segment(SignalData& owner, uint32_t segment_id, uint64_t samplerate,
 #ifdef ENABLE_ZSTD
 	// Create the input chunk
 	input_chunk_ = new uint8_t[chunk_size_];
+
+	// Initialize zstd compression context
+	zstd_cctx_ = ZSTD_createCCtx();
+	zstd_dctx_ = ZSTD_createDCtx();
+
+	ZSTD_CCtx_setParameter(zstd_cctx_, ZSTD_p_compressionLevel, CompressionLevel);
+	ZSTD_CCtx_setParameter(zstd_cctx_, ZSTD_p_nbWorkers, WorkerCount);
+
+//	ZSTD_DCtx_setParameter(zstd_dctx_, ZSTD_p_nbWorkers, WorkerCount);
 #else
 	// Create the initial chunk
 	current_chunk_ = new uint8_t[chunk_size_];
@@ -85,6 +95,9 @@ Segment::~Segment()
 		delete[] input_chunk_;
 	if (output_chunk_)
 		delete[] output_chunk_;
+
+	ZSTD_freeDCtx(zstd_dctx_);
+	ZSTD_freeCCtx(zstd_cctx_);
 #else
 	for (uint8_t* chunk : data_chunks_)
 		delete[] chunk;
@@ -124,6 +137,8 @@ uint32_t Segment::segment_id() const
 
 void Segment::set_complete()
 {
+	lock_guard<recursive_mutex> lock(mutex_);
+
 	is_complete_ = true;
 
 #ifdef ENABLE_ZSTD
@@ -170,15 +185,26 @@ void Segment::compress_input_chunk()
 	compressed_chunks_.emplace_back(ZSTD_compressBound(chunk_size_));
 	vector<uint8_t>& compressed_chunk = compressed_chunks_.back();
 
-	result = ZSTD_compress(compressed_chunk.data(), compressed_chunk.capacity(),
-		(void*)input_chunk_, used_samples_ * unit_size_, Segment::CompressionLevel);
+	ZSTD_inBuffer input = { (void*)input_chunk_,
+		(size_t)(used_samples_ * unit_size_), 0 };
+	ZSTD_outBuffer output = { compressed_chunk.data(),
+		compressed_chunk.capacity(), 0 };
+
+	// Note: We use this as a blocking call because of ZSTD_e_end
+	// TODO Use zstd in multithreaded nonblocking mode
+	int ctr = 0;
+	do {
+		result = ZSTD_compress_generic(zstd_cctx_, &output, &input, ZSTD_e_end);
+qDebug() << "-- comp:" << result << input.pos << output.pos;
+	} while (((!ZSTD_isError(result)) && (result > 0)) && (ctr++ < 10));
 
 	if (ZSTD_isError(result)) {
 		qDebug() << "ERROR: ZSTD_compress for segment" << segment_id_ << ":" <<
 			QString::fromUtf8(ZSTD_getErrorName(result));
+		ZSTD_CCtx_reset(zstd_cctx_);
 	} else {
 		// Result contains number of written bytes
-		compressed_chunk.resize(result);
+		compressed_chunk.resize(output.pos);
 		compressed_chunk.shrink_to_fit();
 	}
 }
@@ -189,14 +215,27 @@ void Segment::decompress_chunk(uint64_t chunk_num, uint8_t *dest) const
 
 	try {
 		const vector<uint8_t>& compressed_chunk = compressed_chunks_.at(chunk_num);
-		result = ZSTD_decompress((void*)dest, chunk_size_ * unit_size_,
-			compressed_chunk.data(), compressed_chunk.size());
 
-		if (ZSTD_isError(result)) {
-			qDebug() << "ERROR: ZSTD_decompress for segment" << segment_id_ << ":" <<
-				QString::fromUtf8(ZSTD_getErrorName(result));
+		if (compressed_chunk.size() == 0) {
+			qDebug() << "WARNING: Compressed chunk" << chunk_num << "has length 0";
+			return;
 		}
 
+		ZSTD_inBuffer input = { compressed_chunk.data(),
+			compressed_chunk.size(), 0 };
+		ZSTD_outBuffer output = { (void*)dest,
+			(size_t)(chunk_size_ * unit_size_), 0 };
+
+		int ctr = 0;
+		do {
+			result = ZSTD_decompress_generic(zstd_dctx_, &output, &input);
+qDebug() << "-- decomp:" << result << input.pos << output.pos;
+		} while ( ((!ZSTD_isError(result)) && (result > 0)) && (ctr++ < 10));
+
+		if (ZSTD_isError(result)) {
+			qDebug() << "ERROR: ZSTD_decompress_generic for segment" <<
+				segment_id_ << ":" << QString::fromUtf8(ZSTD_getErrorName(result));
+		}
 	} catch (out_of_range&) {
 		qDebug() << "ERROR: Chunk" << chunk_num << "out of range for segment" <<
 			segment_id_ << "; max:" << (compressed_chunks_.size() - 1);

@@ -30,6 +30,7 @@
 #include <QObject>
 
 #ifdef ENABLE_ZSTD
+#define ZSTD_STATIC_LINKING_ONLY
 #include <zstd.h>
 #endif
 
@@ -62,6 +63,7 @@ private:
 	static const uint64_t MaxChunkSize;
 	static const uint64_t NotifyBlockSize;
 	static const int CompressionLevel;
+	static const int WorkerCount;
 
 public:
 	Segment(SignalData& owner, uint32_t segment_id, uint64_t samplerate,
@@ -103,6 +105,8 @@ protected:
 	uint8_t* input_chunk_;
 	uint8_t* output_chunk_;
 	uint64_t input_chunk_num_, output_chunk_num_;
+	ZSTD_CCtx* zstd_cctx_;
+	ZSTD_DCtx* zstd_dctx_;
 #else
 	vector<uint8_t*> data_chunks_;
 	uint8_t* current_chunk_;
