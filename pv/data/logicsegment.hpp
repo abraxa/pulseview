@@ -54,20 +54,7 @@ class LogicSegment : public Segment
 
 public:
 	typedef pair<int64_t, bool> EdgePair;
-
-	static const unsigned int ScaleStepCount = 10;
-	static const int MipMapScalePower;
-	static const int MipMapScaleFactor;
-	static const float LogMipMapScaleFactor;
-	static const uint64_t MipMapDataUnit;
-
-private:
-	struct MipMapLevel
-	{
-		uint64_t length;
-		uint64_t data_length;
-		void *data;
-	};
+	typedef vector<EdgePair> RLEData;
 
 public:
 	LogicSegment(pv::data::Logic& owner, uint32_t segment_id,
@@ -86,43 +73,34 @@ public:
 	 * @param[out] edges The vector to place the edges into.
 	 * @param[in] start The start sample index.
 	 * @param[in] end The end sample index.
-	 * @param[in] min_length The minimum number of samples that
 	 * can be resolved at this level of detail.
 	 * @param[in] sig_index The index of the signal.
 	 */
 	void get_subsampled_edges(vector<EdgePair> &edges,
 		uint64_t start, uint64_t end,
-		float min_length, int sig_index, bool first_change_only = false);
+		uint32_t sig_index, bool first_change_only = false);
 
 	void get_surrounding_edges(vector<EdgePair> &dest,
-		uint64_t origin_sample, float min_length, int sig_index);
+		uint64_t origin_sample, uint32_t sig_index);
 
 private:
-	uint64_t unpack_sample(const uint8_t *ptr) const;
-	void pack_sample(uint8_t *ptr, uint64_t value);
-
-	void reallocate_mipmap_level(MipMapLevel &m);
-
-	void append_payload_to_mipmap();
-
 	uint64_t get_unpacked_sample(uint64_t index) const;
 
 	template <class T> void downsampleTmain(const T*&in, T &acc, T &prev);
 	template <class T> void downsampleT(const uint8_t *in, uint8_t *&out, uint64_t len);
 	void downsampleGeneric(const uint8_t *in, uint8_t *&out, uint64_t len);
 
-private:
-	uint64_t get_subsample(int level, uint64_t offset) const;
-
-	static uint64_t pow2_ceil(uint64_t x, unsigned int power);
+	void process_new_samples(void *data, uint64_t samples);
 
 private:
 	Logic& owner_;
 
-	struct MipMapLevel mip_map_[ScaleStepCount];
 	uint64_t last_append_sample_;
 	uint64_t last_append_accumulator_;
 	uint64_t last_append_extra_;
+
+	uint64_t prev_sample_value_;
+	vector<RLEData> sub_signals_;
 
 	friend struct LogicSegmentTest::Pow2;
 	friend struct LogicSegmentTest::Basic;

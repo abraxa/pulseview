@@ -806,7 +806,6 @@ void AnalogSignal::update_conversion_widgets()
 vector<data::LogicSegment::EdgePair> AnalogSignal::get_nearest_level_changes(uint64_t sample_pos)
 {
 	assert(base_);
-	assert(owner_);
 
 	// Return if there's no logic data or we're showing only the analog trace
 	if (!base_->logic_data() || (display_type_ == DisplayAnalog))
@@ -819,14 +818,8 @@ vector<data::LogicSegment::EdgePair> AnalogSignal::get_nearest_level_changes(uin
 	if (!segment || (segment->get_sample_count() == 0))
 		return vector<LogicSegment::EdgePair>();
 
-	const View *view = owner_->view();
-	assert(view);
-	const double samples_per_pixel = base_->get_samplerate() * view->scale();
-
 	vector<LogicSegment::EdgePair> edges;
-
-	segment->get_surrounding_edges(edges, sample_pos,
-		samples_per_pixel / LogicSignal::Oversampling, 0);
+	segment->get_surrounding_edges(edges, sample_pos, 0);
 
 	if (edges.empty())
 		return vector<LogicSegment::EdgePair>();

@@ -392,7 +392,6 @@ void Channels::enable_all_changing_channels()
 
 				segment->get_subsampled_edges(edges,
 					0, segment->get_sample_count() - 1,
-					LogicSegment::MipMapScaleFactor,
 					signal->index());
 
 				if (edges.size() > 2)
