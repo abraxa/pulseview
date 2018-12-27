@@ -73,11 +73,12 @@ public:
 	 * @param[out] edges The vector to place the edges into.
 	 * @param[in] start The start sample index.
 	 * @param[in] end The end sample index.
+	 * @param[in] samples_per_pixel Number of samples per pixel, used to compact overlapping edges
 	 * can be resolved at this level of detail.
 	 * @param[in] sig_index The index of the signal.
 	 */
 	void get_subsampled_edges(vector<EdgePair> &edges,
-		uint64_t start, uint64_t end,
+		uint64_t start, uint64_t end, uint32_t samples_per_pixel,
 		uint32_t sig_index, bool first_change_only = false);
 
 	void get_surrounding_edges(vector<EdgePair> &dest,
@@ -86,18 +87,10 @@ public:
 private:
 	uint64_t get_unpacked_sample(uint64_t index) const;
 
-	template <class T> void downsampleTmain(const T*&in, T &acc, T &prev);
-	template <class T> void downsampleT(const uint8_t *in, uint8_t *&out, uint64_t len);
-	void downsampleGeneric(const uint8_t *in, uint8_t *&out, uint64_t len);
-
 	void process_new_samples(void *data, uint64_t samples);
 
 private:
 	Logic& owner_;
-
-	uint64_t last_append_sample_;
-	uint64_t last_append_accumulator_;
-	uint64_t last_append_extra_;
 
 	uint64_t prev_sample_value_;
 	vector<RLEData> sub_signals_;

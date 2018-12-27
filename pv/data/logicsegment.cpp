@@ -49,10 +49,7 @@ namespace data {
 LogicSegment::LogicSegment(pv::data::Logic& owner, uint32_t segment_id,
 	unsigned int unit_size,	uint64_t samplerate) :
 	Segment(segment_id, samplerate, unit_size),
-	owner_(owner),
-	last_append_sample_(0),
-	last_append_accumulator_(0),
-	last_append_extra_(0)
+	owner_(owner)
 {
 	// Create all sub-signals
 	sub_signals_.resize(unit_size_ * 8);
@@ -60,183 +57,6 @@ LogicSegment::LogicSegment(pv::data::Logic& owner, uint32_t segment_id,
 
 LogicSegment::~LogicSegment()
 {
-}
-
-template <class T>
-void LogicSegment::downsampleTmain(const T*&in, T &acc, T &prev)
-{
-	// Accumulate one sample at a time
-	for (uint64_t i = 0; i < MipMapScaleFactor; i++) {
-		T sample = *in++;
-		acc |= prev ^ sample;
-		prev = sample;
-	}
-}
-
-template <>
-void LogicSegment::downsampleTmain<uint8_t>(const uint8_t*&in, uint8_t &acc, uint8_t &prev)
-{
-	// Handle 8 bit samples in 32 bit steps
-	uint32_t prev32 = prev | prev << 8 | prev << 16 | prev << 24;
-	uint32_t acc32 = acc;
-	const uint32_t *in32 = (const uint32_t*)in;
-	for (uint64_t i = 0; i < MipMapScaleFactor; i += 4) {
-		uint32_t sample32 = *in32++;
-		acc32 |= prev32 ^ sample32;
-		prev32 = sample32;
-	}
-	// Reduce result back to uint8_t
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	prev = (prev32 >> 24) & 0xff; // MSB is last
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	prev = prev32 & 0xff; // LSB is last
-#else
-#error Endianness unknown
-#endif
-	acc |= acc32 & 0xff;
-	acc |= (acc32 >> 8) & 0xff;
-	acc |= (acc32 >> 16) & 0xff;
-	acc |= (acc32 >> 24) & 0xff;
-	in = (const uint8_t*)in32;
-}
-
-template <>
-void LogicSegment::downsampleTmain<uint16_t>(const uint16_t*&in, uint16_t &acc, uint16_t &prev)
-{
-	// Handle 16 bit samples in 32 bit steps
-	uint32_t prev32 = prev | prev << 16;
-	uint32_t acc32 = acc;
-	const uint32_t *in32 = (const uint32_t*)in;
-	for (uint64_t i = 0; i < MipMapScaleFactor; i += 2) {
-		uint32_t sample32 = *in32++;
-		acc32 |= prev32 ^ sample32;
-		prev32 = sample32;
-	}
-	// Reduce result back to uint16_t
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-	prev = (prev32 >> 16) & 0xffff; // MSB is last
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-	prev = prev32 & 0xffff; // LSB is last
-#else
-#error Endian unknown
-#endif
-	acc |= acc32 & 0xffff;
-	acc |= (acc32 >> 16) & 0xffff;
-	in = (const uint16_t*)in32;
-}
-
-template <class T>
-void LogicSegment::downsampleT(const uint8_t *in_, uint8_t *&out_, uint64_t len)
-{
-	const T *in = (const T*)in_;
-	T *out = (T*)out_;
-	T prev = last_append_sample_;
-	T acc = last_append_accumulator_;
-
-	// Try to complete the previous downsample
-	if (last_append_extra_) {
-		while (last_append_extra_ < MipMapScaleFactor && len > 0) {
-			T sample = *in++;
-			acc |= prev ^ sample;
-			prev = sample;
-			last_append_extra_++;
-			len--;
-		}
-		if (!len) {
-			// Not enough samples available to complete downsample
-			last_append_sample_ = prev;
-			last_append_accumulator_ = acc;
-			return;
-		}
-		// We have a complete downsample
-		*out++ = acc;
-		acc = 0;
-		last_append_extra_ = 0;
-	}
-
-	// Handle complete blocks of MipMapScaleFactor samples
-	while (len >= MipMapScaleFactor) {
-		downsampleTmain<T>(in, acc, prev);
-		len -= MipMapScaleFactor;
-		// Output downsample
-		*out++ = acc;
-		acc = 0;
-	}
-
-	// Process remainder, not enough for a complete sample
-	while (len > 0) {
-		T sample = *in++;
-		acc |= prev ^ sample;
-		prev = sample;
-		last_append_extra_++;
-		len--;
-	}
-
-	// Update context
-	last_append_sample_ = prev;
-	last_append_accumulator_ = acc;
-	out_ = (uint8_t *)out;
-}
-
-void LogicSegment::downsampleGeneric(const uint8_t *in, uint8_t *&out, uint64_t len)
-{
-	// Downsample using the generic unpack_sample()
-	// which can handle any width between 1 and 8 bytes
-	uint64_t prev = last_append_sample_;
-	uint64_t acc = last_append_accumulator_;
-
-	// Try to complete the previous downsample
-	if (last_append_extra_) {
-		while (last_append_extra_ < MipMapScaleFactor && len > 0) {
-			const uint64_t sample = unpack_sample(in);
-			in += unit_size_;
-			acc |= prev ^ sample;
-			prev = sample;
-			last_append_extra_++;
-			len--;
-		}
-		if (!len) {
-			// Not enough samples available to complete downsample
-			last_append_sample_ = prev;
-			last_append_accumulator_ = acc;
-			return;
-		}
-		// We have a complete downsample
-		pack_sample(out, acc);
-		out += unit_size_;
-		acc = 0;
-		last_append_extra_ = 0;
-	}
-
-	// Handle complete blocks of MipMapScaleFactor samples
-	while (len >= MipMapScaleFactor) {
-		// Accumulate one sample at a time
-		for (uint64_t i = 0; i < MipMapScaleFactor; i++) {
-			const uint64_t sample = unpack_sample(in);
-			in += unit_size_;
-			acc |= prev ^ sample;
-			prev = sample;
-		}
-		len -= MipMapScaleFactor;
-		// Output downsample
-		pack_sample(out, acc);
-		out += unit_size_;
-		acc = 0;
-	}
-
-	// Process remainder, not enough for a complete sample
-	while (len > 0) {
-		const uint64_t sample = unpack_sample(in);
-		in += unit_size_;
-		acc |= prev ^ sample;
-		prev = sample;
-		last_append_extra_++;
-		len--;
-	}
-
-	// Update context
-	last_append_sample_ = prev;
-	last_append_accumulator_ = acc;
 }
 
 void LogicSegment::append_payload(shared_ptr<sigrok::Logic> logic)
@@ -284,10 +104,14 @@ void LogicSegment::get_samples(int64_t start_sample,
 
 void LogicSegment::get_subsampled_edges(
 	vector<EdgePair> &edges,
-	uint64_t start, uint64_t end,
+	uint64_t start, uint64_t end, uint32_t samples_per_pixel,
 	uint32_t sig_index, bool first_change_only)
 {
 	assert(start <= end);
+	assert(sig_index <= unit_size_ * 8);
+
+	if (samples_per_pixel == 0)
+		samples_per_pixel = 1;
 
 	lock_guard<recursive_mutex> lock(mutex_);
 
@@ -295,29 +119,59 @@ void LogicSegment::get_subsampled_edges(
 	if (end > get_sample_count())
 		end = get_sample_count();
 
-	(void)edges;
-	(void)sig_index;
-	(void)first_change_only;
+	uint64_t sample_index = 0;
+	uint64_t pixel_sample_count = 0;
+	bool multi_subsample_edges = false;
+	bool last_subsample_edge_state;
+	uint64_t multi_subsample_edge_length = 0;
 
-/*	const uint64_t block_length = (uint64_t)max(min_length, 1.0f);
-	const unsigned int min_level = max((int)floorf(logf(min_length) /
-		LogMipMapScaleFactor) - 1, 0);
-	const uint64_t sig_mask = 1ULL << sig_index;
+	for (EdgePair& change : sub_signals_.at(sig_index)) {
+		if (sample_index + change.first < start) {
+			// Skip changes until we reach the start sample
+			sample_index += change.first;
+			pixel_sample_count = sample_index % samples_per_pixel;
+			continue;
+		}
 
-	// Store the initial state
-	last_sample = (get_unpacked_sample(start) & sig_mask) != 0;
-	if (!first_change_only)
-		edges.emplace_back(index++, last_sample);
+		if (pixel_sample_count + change.first < samples_per_pixel) {
+			// Edge occupies the same pixel as the last edge, so don't add it
+			multi_subsample_edges = true;
+			last_subsample_edge_state = change.second;
+			multi_subsample_edge_length += change.first;
+			pixel_sample_count += change.first;
 
+		} else {
+			// Edge is on a new pixel, add previous edge if needed
+			if (multi_subsample_edges) {
+				edges.emplace_back(sample_index, last_subsample_edge_state);
+				sample_index += multi_subsample_edge_length;
+				multi_subsample_edges = false;
+				multi_subsample_edge_length = 0;
+			}
 
-	// Add the final state
-	if (!first_change_only) {
-		const bool end_sample = get_unpacked_sample(end) & sig_mask;
-		if (last_sample != end_sample)
-			edges.emplace_back(end, end_sample);
-		edges.emplace_back(end + 1, end_sample);
+			// Add current edge
+			edges.emplace_back(sample_index, change.second);
+			sample_index += change.first;
+			pixel_sample_count = sample_index % samples_per_pixel;
+		}
+
+		if (sample_index >= end)
+			break;
 	}
-	*/
+
+	// Make sure at least one edge is present when zoomed out
+	if (edges.empty() && samples_per_pixel >= sample_count_)
+		edges.emplace_back(0, sub_signals_.at(sig_index).front().second);
+
+	// TODO Fix this, doesn't work when end isn't the end of the segment
+	// Add final state change
+	edges.emplace_back(sample_index, sub_signals_.at(sig_index).back().second);
+
+qDebug() << "-------------------------";
+for (EdgePair& change : edges) qDebug() << change.first << change.second;
+qDebug() << "-------------------------" << sig_index << samples_per_pixel << edges.size();
+
+	(void)first_change_only;
 }
 
 void LogicSegment::get_surrounding_edges(vector<EdgePair> &dest,
@@ -360,19 +214,6 @@ void LogicSegment::get_surrounding_edges(vector<EdgePair> &dest,
 	delete edges;
 }
 
-			const uint64_t sample = unpack_sample(it->value);
-			accumulator |= last_append_sample_ ^ sample;
-			continue_raw_sample_iteration(it, 1);
-		else if (unit_size_ == 4)
-		pack_sample(dest_ptr, accumulator);
-		dest_ptr += unit_size_;
-			downsampleT<uint8_t>(src_ptr, dest_ptr, count);
-		else
-			downsampleGeneric(src_ptr, dest_ptr, count);
-		len_sample -= count;
-		// Advance iterator, should move to start of next chunk
-		continue_sample_iteration(it, count);
-	end_raw_sample_iteration(it);
 uint64_t LogicSegment::get_unpacked_sample(uint64_t index) const
 {
 	assert(index < sample_count_);
@@ -388,14 +229,50 @@ uint64_t LogicSegment::get_unpacked_sample(uint64_t index) const
 
 void LogicSegment::process_new_samples(void *data, uint64_t samples)
 {
+	uint64_t sample_mask = 0;
+	for (uint8_t i = 0; i < (unit_size_ * 8); i++)
+		sample_mask += (1 << i);
+
 	for (uint64_t i = 0; i < samples; i++) {
+		const uint64_t* ptr = (uint64_t*)( (uint64_t)data + i * unit_size_ );
+		const uint64_t sample_value = (*ptr) & sample_mask;
+
 		if (sub_signals_.front().empty()) {
-			prev_sample_value_ = unpack_sample(data);
+			// Sub-signals are empty, use the current state as initial state
+			prev_sample_value_ = sample_value;
+
+			uint64_t compare_value = 1;
+			for (uint32_t si = 0; si < sub_signals_.size(); si++) {
+				// Add the first RLE entry to all sub-signals and set the states
+				// of all sub-signal RLE entries to the current state
+				bool state = (sample_value & compare_value) == compare_value;
+				sub_signals_.at(si).emplace_back(1, state);
+				compare_value <<= 1;
+			}
+			continue;
+		}
+
+		if (sample_value == prev_sample_value_) {
+			// Sample value hasn't changed, simply increase all run lengths
+			for (uint32_t si = 0; si < sub_signals_.size(); si++)
+				sub_signals_.at(si).back().first++;
+		} else {
+			// Demux sample and increase sub-signal run length or insert state change
+			uint64_t compare_value = 1;
+			for (uint32_t si = 0; si < sub_signals_.size(); si++) {
+				bool state = (sample_value & compare_value) == compare_value;
+
+				if (state == sub_signals_.at(si).back().second)
+					sub_signals_.at(si).back().first++;
+				else
+					sub_signals_.at(si).emplace_back(1, state);
+
+				compare_value <<= 1;
+			}
+			prev_sample_value_ = sample_value;
 		}
 	}
 }
-}
-
 
 } // namespace data
 } // namespace pv

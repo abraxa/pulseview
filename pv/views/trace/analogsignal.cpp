@@ -560,7 +560,7 @@ void AnalogSignal::paint_logic_mid(QPainter &p, ViewItemPaintParams &pp)
 		(int64_t)0), last_sample);
 
 	segment->get_subsampled_edges(edges, start_sample, end_sample,
-		samples_per_pixel / LogicSignal::Oversampling, 0);
+		samples_per_pixel, 0);
 	assert(edges.size() >= 2);
 
 	const float first_sample_x =

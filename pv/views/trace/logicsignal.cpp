@@ -63,8 +63,6 @@ namespace pv {
 namespace views {
 namespace trace {
 
-const float LogicSignal::Oversampling = 2.0f;
-
 const QColor LogicSignal::EdgeColor(0x80, 0x80, 0x80);
 const QColor LogicSignal::HighColor(0x00, 0xC0, 0x00);
 const QColor LogicSignal::LowColor(0xC0, 0x00, 0x00);
@@ -213,8 +211,8 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 		(int64_t)0), last_sample);
 
 	segment->get_subsampled_edges(edges, start_sample, end_sample,
-		samples_per_pixel / Oversampling, base_->index());
-	assert(edges.size() >= 2);
+		samples_per_pixel, base_->index());
+	assert(edges.size() >= 1);
 
 	const float first_sample_x =
 		pp.left() + (edges.front().first / samples_per_pixel - pixels_offset);
@@ -236,7 +234,7 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 	bool rising_edge_seen = false;
 
 	// Paint the edges
-	const unsigned int edge_count = edges.size() - 2;
+	const unsigned int edge_count = edges.size() - 1;
 	QLineF *const edge_lines = new QLineF[edge_count];
 	line = edge_lines;
 
@@ -246,7 +244,7 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 		rising_edge_seen = true;
 	}
 
-	for (auto i = edges.cbegin() + 1; i != edges.cend() - 1; i++) {
+	for (auto i = edges.cbegin() + 1; i != edges.cend(); i++) {
 		// Note: multiple edges occupying a single pixel are represented by an edge
 		// with undefined logic level. This means that only the first falling edge
 		// after a rising edge corresponds to said rising edge - and vice versa. If
@@ -286,7 +284,7 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 	if (show_sampling_points)
 		while ((uint64_t)sampling_point_sample <= end_sample) {
 			// Signal changed after the last edge, so the level is inverted
-			const float y = (edges.cend() - 1)->second ? high_offset : low_offset;
+			const float y = (edges.cend())->second ? high_offset : low_offset;
 			sampling_points.emplace_back(
 				QRectF(sampling_point_x - (w / 2), y - (w / 2), w, w));
 			sampling_point_sample++;

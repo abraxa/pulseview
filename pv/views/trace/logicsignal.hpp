@@ -58,8 +58,6 @@ class LogicSignal : public Signal
 	Q_OBJECT
 
 public:
-	static const float Oversampling;
-
 	static const QColor EdgeColor;
 	static const QColor HighColor;
 	static const QColor LowColor;

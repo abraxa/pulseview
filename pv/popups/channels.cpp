@@ -390,8 +390,9 @@ void Channels::enable_all_changing_channels()
 			for (shared_ptr<LogicSegment> segment : logic->logic_segments()) {
 				vector<LogicSegment::EdgePair> edges;
 
+				// TODO Optimize this by implementing a "segment edge count" property in LogicSegment
 				segment->get_subsampled_edges(edges,
-					0, segment->get_sample_count() - 1,
+					0, segment->get_sample_count() - 1, 1,
 					signal->index());
 
 				if (edges.size() > 2)
@@ -423,8 +424,7 @@ void Channels::disable_all_non_changing_channels()
 				vector<LogicSegment::EdgePair> edges;
 
 				segment->get_subsampled_edges(edges,
-					0, segment->get_sample_count() - 1,
-					LogicSegment::MipMapScaleFactor,
+					0, segment->get_sample_count() - 1, 1,
 					signal->index());
 
 				if (edges.size() > 2)
