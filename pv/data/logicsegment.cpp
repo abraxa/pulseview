@@ -169,7 +169,7 @@ void LogicSegment::get_subsampled_edges(
 
 qDebug() << "-------------------------";
 for (EdgePair& change : edges) qDebug() << change.first << change.second;
-qDebug() << "-------------------------" << sig_index << samples_per_pixel << edges.size();
+qDebug() << "-------------------------" << "Index:" << sig_index << "SPP:" << samples_per_pixel << "Edges:" << edges.size();
 
 	(void)first_change_only;
 }

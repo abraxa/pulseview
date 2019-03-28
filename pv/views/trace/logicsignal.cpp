@@ -209,7 +209,7 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 		(int64_t)0), last_sample);
 	const uint64_t end_sample = min(max(ceil(end).convert_to<int64_t>(),
 		(int64_t)0), last_sample);
-
+qDebug() << "start sample is" << start_sample;
 	segment->get_subsampled_edges(edges, start_sample, end_sample,
 		samples_per_pixel, base_->index());
 	assert(edges.size() >= 1);
@@ -252,7 +252,7 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 
 		const float x = pp.left() + ((*i).first / samples_per_pixel - pixels_offset);
 		*line++ = QLineF(x, high_offset, x, low_offset);
-
+qDebug() << "-- line x:" << x;
 		if (fill_high_areas_) {
 			// Any edge terminates a high area
 			if (rising_edge_seen) {
@@ -272,6 +272,7 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 
 		if (show_sampling_points)
 			while (sampling_point_sample < (*i).first) {
+qDebug() << "-- sample:" << sampling_point_sample << "/" << ((*i).first) << "line x:" << x << "; point x:" << sampling_point_x;
 				const float y = (*i).second ? low_offset : high_offset;
 				sampling_points.emplace_back(
 					QRectF(sampling_point_x - (w / 2), y - (w / 2), w, w));
