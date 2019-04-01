@@ -150,7 +150,7 @@ void LogicSegment::get_subsampled_edges(
 			}
 
 			// Add current edge
-			edges.emplace_back(sample_index, change.second);
+			edges.emplace_back(max(sample_index, start), change.second);
 			sample_index += change.first;
 			pixel_sample_count = sample_index % samples_per_pixel;
 		}
@@ -162,10 +162,6 @@ void LogicSegment::get_subsampled_edges(
 	// Make sure at least one edge is present when zoomed out
 	if (edges.empty() && samples_per_pixel >= sample_count_)
 		edges.emplace_back(0, sub_signals_.at(sig_index).front().second);
-
-	// TODO Fix this, doesn't work when end isn't the end of the segment
-	// Add final state change
-	edges.emplace_back(sample_index, sub_signals_.at(sig_index).back().second);
 
 qDebug() << "-------------------------";
 for (EdgePair& change : edges) qDebug() << change.first << change.second;

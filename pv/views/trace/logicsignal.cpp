@@ -209,15 +209,15 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 		(int64_t)0), last_sample);
 	const uint64_t end_sample = min(max(ceil(end).convert_to<int64_t>(),
 		(int64_t)0), last_sample);
-qDebug() << "start sample is" << start_sample;
+
 	segment->get_subsampled_edges(edges, start_sample, end_sample,
 		samples_per_pixel, base_->index());
 	assert(edges.size() >= 1);
 
 	const float first_sample_x =
-		pp.left() + (edges.front().first / samples_per_pixel - pixels_offset);
+		pp.left() + (start_sample / samples_per_pixel - pixels_offset);
 	const float last_sample_x =
-		pp.left() + (edges.back().first / samples_per_pixel - pixels_offset);
+		pp.left() + (end_sample / samples_per_pixel - pixels_offset);
 
 	// Check whether we need to paint the sampling points
 	const bool show_sampling_points = show_sampling_points_ && (samples_per_pixel < 0.25);
@@ -252,7 +252,7 @@ qDebug() << "start sample is" << start_sample;
 
 		const float x = pp.left() + ((*i).first / samples_per_pixel - pixels_offset);
 		*line++ = QLineF(x, high_offset, x, low_offset);
-qDebug() << "-- line x:" << x;
+
 		if (fill_high_areas_) {
 			// Any edge terminates a high area
 			if (rising_edge_seen) {
@@ -272,7 +272,6 @@ qDebug() << "-- line x:" << x;
 
 		if (show_sampling_points)
 			while (sampling_point_sample < (*i).first) {
-qDebug() << "-- sample:" << sampling_point_sample << "/" << ((*i).first) << "line x:" << x << "; point x:" << sampling_point_x;
 				const float y = (*i).second ? low_offset : high_offset;
 				sampling_points.emplace_back(
 					QRectF(sampling_point_x - (w / 2), y - (w / 2), w, w));
@@ -281,11 +280,13 @@ qDebug() << "-- sample:" << sampling_point_sample << "/" << ((*i).first) << "lin
 			};
 	}
 
+	pair<int64_t, bool> final_edge = *(edges.cend() - 1);
+
 	// Calculate the sample points from the last edge to the end of the trace
 	if (show_sampling_points)
 		while ((uint64_t)sampling_point_sample <= end_sample) {
 			// Signal changed after the last edge, so the level is inverted
-			const float y = (edges.cend())->second ? high_offset : low_offset;
+			const float y = final_edge.second ? high_offset : low_offset;
 			sampling_points.emplace_back(
 				QRectF(sampling_point_x - (w / 2), y - (w / 2), w, w));
 			sampling_point_sample++;
@@ -294,7 +295,7 @@ qDebug() << "-- sample:" << sampling_point_sample << "/" << ((*i).first) << "lin
 
 	if (fill_high_areas_) {
 		// Add last high rectangle if the signal is still high at the end of the trace
-		if (rising_edge_seen && (edges.cend() - 1)->second)
+		if (rising_edge_seen && final_edge.second)
 			high_rects.emplace_back(rising_edge_x, high_offset,
 				last_sample_x - rising_edge_x, signal_height_);
 
@@ -308,17 +309,8 @@ qDebug() << "-- sample:" << sampling_point_sample << "/" << ((*i).first) << "lin
 	delete[] edge_lines;
 
 	// Paint the caps
-	const unsigned int max_cap_line_count = edges.size();
-	QLineF *const cap_lines = new QLineF[max_cap_line_count];
-
-	p.setPen(HighColor);
-	paint_caps(p, cap_lines, edges, true, samples_per_pixel,
-		pixels_offset, pp.left(), high_offset);
-	p.setPen(LowColor);
-	paint_caps(p, cap_lines, edges, false, samples_per_pixel,
-		pixels_offset, pp.left(), low_offset);
-
-	delete[] cap_lines;
+	paint_caps(p, edges, samples_per_pixel, pixels_offset, pp.left(),
+		low_offset, high_offset, end_sample);
 
 	// Paint the sampling points
 	if (show_sampling_points) {
@@ -388,23 +380,53 @@ vector<LogicSegment::EdgePair> LogicSignal::get_nearest_level_changes(uint64_t s
 	return edges;
 }
 
-void LogicSignal::paint_caps(QPainter &p, QLineF *const lines,
-	vector< pair<int64_t, bool> > &edges, bool level,
+void LogicSignal::paint_caps(QPainter &p, vector< pair<int64_t, bool> > &edges,
 	double samples_per_pixel, double pixels_offset, float x_offset,
-	float y_offset)
+	float low_offset, float high_offset, int64_t end_sample)
 {
-	QLineF *line = lines;
+	const unsigned int max_line_count = edges.size();
+	QLineF *const lines = new QLineF[max_line_count];
+	QLineF *line;
 
+	// High levels
+	p.setPen(HighColor);
+	line = lines;
 	for (auto i = edges.begin(); i != (edges.end() - 1); i++)
-		if ((*i).second == level) {
+		if ((*i).second == true) {
 			*line++ = QLineF(
 				((*i).first / samples_per_pixel -
-					pixels_offset) + x_offset, y_offset,
+					pixels_offset) + x_offset, high_offset,
 				((*(i+1)).first / samples_per_pixel -
-					pixels_offset) + x_offset, y_offset);
+					pixels_offset) + x_offset, high_offset);
 		}
-
+	if ((edges.end() - 1)->second == true)
+		*line++ = QLineF(
+			((edges.end() - 1)->first / samples_per_pixel -
+				pixels_offset) + x_offset, high_offset,
+			(end_sample / samples_per_pixel -
+				pixels_offset) + x_offset, high_offset);
 	p.drawLines(lines, line - lines);
+
+	// Low levels
+	p.setPen(LowColor);
+	line = lines;
+	for (auto i = edges.begin(); i != (edges.end() - 1); i++)
+		if ((*i).second == false) {
+			*line++ = QLineF(
+				((*i).first / samples_per_pixel -
+					pixels_offset) + x_offset, low_offset,
+				((*(i+1)).first / samples_per_pixel -
+					pixels_offset) + x_offset, low_offset);
+		}
+	if ((edges.end() - 1)->second == false)
+		*line++ = QLineF(
+			((edges.end() - 1)->first / samples_per_pixel -
+				pixels_offset) + x_offset, low_offset,
+			(end_sample / samples_per_pixel -
+				pixels_offset) + x_offset, low_offset);
+	p.drawLines(lines, line - lines);
+
+	delete[] lines;
 }
 
 shared_ptr<pv::data::LogicSegment> LogicSignal::get_logic_segment_to_paint() const
