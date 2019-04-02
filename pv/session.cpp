@@ -1273,9 +1273,6 @@ void Session::feed_in_logic(shared_ptr<Logic> logic)
 		return;
 	}
 
-	if (logic->unit_size() > 8)
-		throw QString(tr("Can't handle more than 64 logic channels."));
-
 	if (!cur_samplerate_)
 		try {
 			cur_samplerate_ = device_->read_config<uint64_t>(ConfigKey::SAMPLERATE);
