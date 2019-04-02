@@ -125,20 +125,21 @@ void LogicSegment::get_subsampled_edges(
 	bool last_subsample_edge_state;
 	uint64_t multi_subsample_edge_length = 0;
 
-	for (EdgePair& change : sub_signals_.at(sig_index)) {
-		if (sample_index + change.first < start) {
+	RLEData& signal_data = sub_signals_.at(sig_index);
+	for (EdgePair& change : signal_data.edges) {
+		if (sample_index + change.sample_num < start) {
 			// Skip changes until we reach the start sample
-			sample_index += change.first;
+			sample_index += change.sample_num;
 			pixel_sample_count = sample_index % samples_per_pixel;
 			continue;
 		}
 
-		if (pixel_sample_count + change.first < samples_per_pixel) {
+		if (pixel_sample_count + change.sample_num < samples_per_pixel) {
 			// Edge occupies the same pixel as the last edge, so don't add it
 			multi_subsample_edges = true;
-			last_subsample_edge_state = change.second;
-			multi_subsample_edge_length += change.first;
-			pixel_sample_count += change.first;
+			last_subsample_edge_state = change.new_state;
+			multi_subsample_edge_length += change.sample_num;
+			pixel_sample_count += change.sample_num;
 
 		} else {
 			// Edge is on a new pixel, add previous edge if needed
@@ -150,8 +151,8 @@ void LogicSegment::get_subsampled_edges(
 			}
 
 			// Add current edge
-			edges.emplace_back(max(sample_index, start), change.second);
-			sample_index += change.first;
+			edges.emplace_back(max(sample_index, start), change.new_state);
+			sample_index += change.sample_num;
 			pixel_sample_count = sample_index % samples_per_pixel;
 		}
 
@@ -161,10 +162,10 @@ void LogicSegment::get_subsampled_edges(
 
 	// Make sure at least one edge is present when zoomed out
 	if (edges.empty() && samples_per_pixel >= sample_count_)
-		edges.emplace_back(0, sub_signals_.at(sig_index).front().second);
+		edges.emplace_back(0, sub_signals_.at(sig_index).edges.front().new_state);
 
 qDebug() << "-------------------------";
-for (EdgePair& change : edges) qDebug() << change.first << change.second;
+for (EdgePair& change : edges) qDebug() << change.sample_num << change.new_state;
 qDebug() << "-------------------------" << "Index:" << sig_index << "SPP:" << samples_per_pixel << "Edges:" << edges.size();
 
 	(void)first_change_only;
@@ -220,7 +221,7 @@ void LogicSegment::process_new_samples(void *data, uint64_t samples)
 		const uint64_t* ptr = (uint64_t*)( (uint64_t)data + i * unit_size_ );
 		const uint64_t sample_value = (*ptr) & sample_mask;
 
-		if (sub_signals_.front().empty()) {
+		if (sub_signals_.front().edges.empty()) {
 			// Sub-signals are empty, use the current state as initial state
 			prev_sample_value_ = sample_value;
 
@@ -229,7 +230,7 @@ void LogicSegment::process_new_samples(void *data, uint64_t samples)
 				// Add the first RLE entry to all sub-signals and set the states
 				// of all sub-signal RLE entries to the current state
 				bool state = (sample_value & compare_value) == compare_value;
-				sub_signals_.at(si).emplace_back(1, state);
+				sub_signals_.at(si).edges.emplace_back(1, state);
 				compare_value <<= 1;
 			}
 			continue;
@@ -238,17 +239,17 @@ void LogicSegment::process_new_samples(void *data, uint64_t samples)
 		if (sample_value == prev_sample_value_) {
 			// Sample value hasn't changed, simply increase all run lengths
 			for (uint32_t si = 0; si < sub_signals_.size(); si++)
-				sub_signals_.at(si).back().first++;
+				sub_signals_.at(si).edges.back().sample_num++;
 		} else {
 			// Demux sample and increase sub-signal run length or insert state change
 			uint64_t compare_value = 1;
 			for (uint32_t si = 0; si < sub_signals_.size(); si++) {
 				bool state = (sample_value & compare_value) == compare_value;
 
-				if (state == sub_signals_.at(si).back().second)
-					sub_signals_.at(si).back().first++;
+				if (state == sub_signals_.at(si).edges.back().new_state)
+					sub_signals_.at(si).edges.back().sample_num++;
 				else
-					sub_signals_.at(si).emplace_back(1, state);
+					sub_signals_.at(si).edges.emplace_back(1, state);
 
 				compare_value <<= 1;
 			}

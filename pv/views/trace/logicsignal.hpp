@@ -112,7 +112,7 @@ public:
 	virtual vector<data::LogicSegment::EdgePair> get_nearest_level_changes(uint64_t sample_pos);
 
 private:
-	void paint_caps(QPainter &p, vector< pair<int64_t, bool> > &edges,
+	void paint_caps(QPainter &p, vector<data::LogicSegment::EdgePair> &edges,
 		double samples_per_pixel, double pixels_offset,
 		float x_offset, float low_offset, float high_offset, int64_t end_sample);
 

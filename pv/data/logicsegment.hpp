@@ -48,13 +48,22 @@ namespace data {
 
 class Logic;
 
+
 class LogicSegment : public Segment
 {
 	Q_OBJECT
 
 public:
-	typedef pair<int64_t, bool> EdgePair;
-	typedef vector<EdgePair> RLEData;
+	struct __attribute__((packed)) EdgePair {
+		EdgePair(uint64_t n, bool s) :
+			sample_num(n), new_state(s) {}
+		uint64_t sample_num;
+		bool new_state;
+	};
+
+	struct RLEData {
+		vector<EdgePair> edges;
+	};
 
 public:
 	LogicSegment(pv::data::Logic& owner, uint32_t segment_id,

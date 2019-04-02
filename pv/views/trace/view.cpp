@@ -893,15 +893,15 @@ int64_t View::get_nearest_level_change(const QPoint &p)
 			continue;
 
 		// Check first edge
-		const int64_t first_sample_delta = abs(sample_num - edges.front().first);
+		const int64_t first_sample_delta = abs(sample_num - static_cast<int64_t>(edges.front().sample_num));
 		const int64_t first_delta = first_sample_delta / samples_per_pixel;
 		e.delta = first_delta;
-		e.sample = edges.front().first;
+		e.sample = edges.front().sample_num;
 
 		// Check second edge if available
 		if (edges.size() == 2) {
 			// Note: -1 because this is usually the right edge and sample points are left-aligned
-			const int64_t second_sample_delta = abs(sample_num - edges.back().first - 1);
+			const int64_t second_sample_delta = abs(sample_num - static_cast<int64_t>(edges.back().sample_num - 1));
 			const int64_t second_delta = second_sample_delta / samples_per_pixel;
 
 			// If both edges are too close, we mark this signal as being dense
@@ -910,7 +910,7 @@ int64_t View::get_nearest_level_change(const QPoint &p)
 
 			if (second_delta < first_delta) {
 				e.delta = second_delta;
-				e.sample = edges.back().first;
+				e.sample = edges.back().sample_num;
 			}
 		}
 	}

@@ -123,10 +123,9 @@ private:
 
 	void paint_logic_mid(QPainter &p, ViewItemPaintParams &pp);
 
-	void paint_logic_caps(QPainter &p, QLineF *const lines,
-		vector< pair<int64_t, bool> > &edges,
-		bool level, double samples_per_pixel, double pixels_offset,
-		float x_offset, float y_offset);
+	void paint_logic_caps(QPainter &p, vector<data::LogicSegment::EdgePair> &edges,
+		double samples_per_pixel, double pixels_offset,
+		float x_offset, float low_offset, float high_offset, int64_t end_sample);
 
 	shared_ptr<pv::data::AnalogSegment> get_analog_segment_to_paint() const;
 	shared_ptr<pv::data::LogicSegment> get_logic_segment_to_paint() const;
