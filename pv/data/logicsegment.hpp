@@ -85,8 +85,6 @@ public:
 		uint64_t origin_sample, uint32_t sig_index);
 
 private:
-	uint64_t get_unpacked_sample(uint64_t index) const;
-
 	void process_new_samples(void *data, uint64_t samples);
 
 private:

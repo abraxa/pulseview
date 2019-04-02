@@ -210,19 +210,6 @@ void LogicSegment::get_surrounding_edges(vector<EdgePair> &dest,
 	delete edges;
 }
 
-uint64_t LogicSegment::get_unpacked_sample(uint64_t index) const
-{
-	assert(index < sample_count_);
-
-	assert(unit_size_ <= 8);  // 8 * 8 = 64 channels
-	uint8_t data[8];
-
-	get_raw_samples(index, 1, data);
-
-//	return unpack_sample(data);
-	return 0;
-}
-
 void LogicSegment::process_new_samples(void *data, uint64_t samples)
 {
 	uint64_t sample_mask = 0;
