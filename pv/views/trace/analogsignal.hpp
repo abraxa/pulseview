@@ -123,7 +123,7 @@ private:
 
 	void paint_logic_mid(QPainter &p, ViewItemPaintParams &pp);
 
-	void paint_logic_caps(QPainter &p, vector<data::LogicSegment::EdgePair> &edges,
+	void paint_logic_caps(QPainter &p, vector<data::LogicSegment::Edge> &edges,
 		double samples_per_pixel, double pixels_offset,
 		float x_offset, float low_offset, float high_offset, int64_t end_sample);
 
@@ -146,7 +146,7 @@ private:
 	 * @param sample_pos Sample to use
 	 * @return The changes left and right of the given position
 	 */
-	virtual vector<data::LogicSegment::EdgePair> get_nearest_level_changes(uint64_t sample_pos);
+	virtual vector<data::LogicSegment::Edge> get_nearest_level_changes(uint64_t sample_pos);
 
 	void perform_autoranging(bool keep_divs, bool force_update);
 

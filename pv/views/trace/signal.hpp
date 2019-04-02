@@ -77,7 +77,7 @@ public:
 	 * @param sample_pos Sample to use
 	 * @return The changes left and right of the given position
 	 */
-	virtual vector<data::LogicSegment::EdgePair> get_nearest_level_changes(uint64_t sample_pos) = 0;
+	virtual vector<data::LogicSegment::Edge> get_nearest_level_changes(uint64_t sample_pos) = 0;
 
 	/**
 	 * Returns true if the trace is visible and enabled.

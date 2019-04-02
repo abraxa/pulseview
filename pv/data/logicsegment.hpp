@@ -54,15 +54,15 @@ class LogicSegment : public Segment
 	Q_OBJECT
 
 public:
-	struct __attribute__((packed)) EdgePair {
-		EdgePair(uint64_t n, bool s) :
+	struct __attribute__((packed)) Edge {
+		Edge(uint64_t n, bool s) :
 			sample_num(n), new_state(s) {}
 		uint64_t sample_num;
 		bool new_state;
 	};
 
 	struct RLEData {
-		vector<EdgePair> edges;
+		vector<Edge> edges;
 	};
 
 public:
@@ -86,11 +86,11 @@ public:
 	 * can be resolved at this level of detail.
 	 * @param[in] sig_index The index of the signal.
 	 */
-	void get_subsampled_edges(vector<EdgePair> &edges,
+	void get_subsampled_edges(vector<Edge> &edges,
 		uint64_t start, uint64_t end, uint32_t samples_per_pixel,
 		uint32_t sig_index, bool first_change_only = false);
 
-	void get_surrounding_edges(vector<EdgePair> &dest,
+	void get_surrounding_edges(vector<Edge> &dest,
 		uint64_t origin_sample, uint32_t sig_index);
 
 private:

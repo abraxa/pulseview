@@ -558,7 +558,7 @@ void AnalogSignal::paint_logic_mid(QPainter &p, ViewItemPaintParams &pp)
 	const uint64_t end_sample = min(max(ceil(end).convert_to<int64_t>(),
 		(int64_t)0), last_sample);
 
-	vector<LogicSegment::EdgePair> edges;
+	vector<LogicSegment::Edge> edges;
 	segment->get_subsampled_edges(edges, start_sample, end_sample,
 		samples_per_pixel, 0);
 	assert(edges.size() >= 1);
@@ -629,7 +629,7 @@ void AnalogSignal::paint_logic_mid(QPainter &p, ViewItemPaintParams &pp)
 			};
 	}
 
-	const LogicSegment::EdgePair final_edge = *(edges.cend() - 1);
+	const LogicSegment::Edge final_edge = *(edges.cend() - 1);
 
 	// Calculate the sample points from the last edge to the end of the trace
 	if (show_sampling_points)
@@ -668,7 +668,7 @@ void AnalogSignal::paint_logic_mid(QPainter &p, ViewItemPaintParams &pp)
 	}
 }
 
-void AnalogSignal::paint_logic_caps(QPainter &p, vector<LogicSegment::EdgePair> &edges,
+void AnalogSignal::paint_logic_caps(QPainter &p, vector<LogicSegment::Edge> &edges,
 	double samples_per_pixel, double pixels_offset,
 	float x_offset, float low_offset, float high_offset, int64_t end_sample)
 {
@@ -826,26 +826,26 @@ void AnalogSignal::update_conversion_widgets()
 	conv_threshold_cb_->blockSignals(false);
 }
 
-vector<data::LogicSegment::EdgePair> AnalogSignal::get_nearest_level_changes(uint64_t sample_pos)
+vector<data::LogicSegment::Edge> AnalogSignal::get_nearest_level_changes(uint64_t sample_pos)
 {
 	assert(base_);
 
 	// Return if there's no logic data or we're showing only the analog trace
 	if (!base_->logic_data() || (display_type_ == DisplayAnalog))
-		return vector<data::LogicSegment::EdgePair>();
+		return vector<data::LogicSegment::Edge>();
 
 	if (sample_pos == 0)
-		return vector<LogicSegment::EdgePair>();
+		return vector<LogicSegment::Edge>();
 
 	shared_ptr<LogicSegment> segment = get_logic_segment_to_paint();
 	if (!segment || (segment->get_sample_count() == 0))
-		return vector<LogicSegment::EdgePair>();
+		return vector<LogicSegment::Edge>();
 
-	vector<LogicSegment::EdgePair> edges;
+	vector<LogicSegment::Edge> edges;
 	segment->get_surrounding_edges(edges, sample_pos, 0);
 
 	if (edges.empty())
-		return vector<LogicSegment::EdgePair>();
+		return vector<LogicSegment::Edge>();
 
 	return edges;
 }

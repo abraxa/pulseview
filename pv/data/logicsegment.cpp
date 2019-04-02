@@ -103,7 +103,7 @@ void LogicSegment::get_samples(int64_t start_sample,
 }
 
 void LogicSegment::get_subsampled_edges(
-	vector<EdgePair> &edges,
+	vector<Edge> &edges,
 	uint64_t start, uint64_t end, uint32_t samples_per_pixel,
 	uint32_t sig_index, bool first_change_only)
 {
@@ -126,7 +126,7 @@ void LogicSegment::get_subsampled_edges(
 	uint64_t multi_subsample_edge_length = 0;
 
 	RLEData& signal_data = sub_signals_.at(sig_index);
-	for (EdgePair& change : signal_data.edges) {
+	for (Edge& change : signal_data.edges) {
 		if (sample_index + change.sample_num < start) {
 			// Skip changes until we reach the start sample
 			sample_index += change.sample_num;
@@ -165,13 +165,13 @@ void LogicSegment::get_subsampled_edges(
 		edges.emplace_back(0, sub_signals_.at(sig_index).edges.front().new_state);
 
 qDebug() << "-------------------------";
-for (EdgePair& change : edges) qDebug() << change.sample_num << change.new_state;
+for (Edge& change : edges) qDebug() << change.sample_num << change.new_state;
 qDebug() << "-------------------------" << "Index:" << sig_index << "SPP:" << samples_per_pixel << "Edges:" << edges.size();
 
 	(void)first_change_only;
 }
 
-void LogicSegment::get_surrounding_edges(vector<EdgePair> &dest,
+void LogicSegment::get_surrounding_edges(vector<Edge> &dest,
 	uint64_t origin_sample, uint32_t sig_index)
 {
 	if (origin_sample >= sample_count_)
@@ -179,7 +179,7 @@ void LogicSegment::get_surrounding_edges(vector<EdgePair> &dest,
 
 	// Put the edges vector on the heap, it can become quite big until we can
 	// use a get_subsampled_edges() implementation that searches backwards
-	vector<EdgePair>* edges = new vector<EdgePair>;
+	vector<Edge>* edges = new vector<Edge>;
 
 	// Get all edges to the left of origin_sample
 	get_subsampled_edges(*edges, 0, origin_sample, sig_index, false);

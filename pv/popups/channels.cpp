@@ -388,7 +388,7 @@ void Channels::enable_all_changing_channels()
 
 			// If any of the segments has edges, enable this channel
 			for (shared_ptr<LogicSegment> segment : logic->logic_segments()) {
-				vector<LogicSegment::EdgePair> edges;
+				vector<LogicSegment::Edge> edges;
 
 				// TODO Optimize this by implementing a "segment edge count" property in LogicSegment
 				segment->get_subsampled_edges(edges,
@@ -421,7 +421,7 @@ void Channels::disable_all_non_changing_channels()
 
 			// If any of the segments has edges, leave this channel enabled
 			for (shared_ptr<LogicSegment> segment : logic->logic_segments()) {
-				vector<LogicSegment::EdgePair> edges;
+				vector<LogicSegment::Edge> edges;
 
 				segment->get_subsampled_edges(edges,
 					0, segment->get_sample_count() - 1, 1,

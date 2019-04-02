@@ -208,7 +208,7 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 	const uint64_t end_sample = min(max(ceil(end).convert_to<int64_t>(),
 		(int64_t)0), last_sample);
 
-	vector<LogicSegment::EdgePair> edges;
+	vector<LogicSegment::Edge> edges;
 	segment->get_subsampled_edges(edges, start_sample, end_sample,
 		samples_per_pixel, base_->index());
 	assert(edges.size() >= 1);
@@ -279,7 +279,7 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 			};
 	}
 
-	const LogicSegment::EdgePair final_edge = *(edges.cend() - 1);
+	const LogicSegment::Edge final_edge = *(edges.cend() - 1);
 
 	// Calculate the sample points from the last edge to the end of the trace
 	if (show_sampling_points)
@@ -359,27 +359,27 @@ void LogicSignal::paint_fore(QPainter &p, ViewItemPaintParams &pp)
 	}
 }
 
-vector<LogicSegment::EdgePair> LogicSignal::get_nearest_level_changes(uint64_t sample_pos)
+vector<LogicSegment::Edge> LogicSignal::get_nearest_level_changes(uint64_t sample_pos)
 {
 	assert(base_);
 
 	if (sample_pos == 0)
-		return vector<LogicSegment::EdgePair>();
+		return vector<LogicSegment::Edge>();
 
 	shared_ptr<LogicSegment> segment = get_logic_segment_to_paint();
 	if (!segment || (segment->get_sample_count() == 0))
-		return vector<LogicSegment::EdgePair>();
+		return vector<LogicSegment::Edge>();
 
-	vector<LogicSegment::EdgePair> edges;
+	vector<LogicSegment::Edge> edges;
 	segment->get_surrounding_edges(edges, sample_pos, base_->index());
 
 	if (edges.empty())
-		return vector<LogicSegment::EdgePair>();
+		return vector<LogicSegment::Edge>();
 
 	return edges;
 }
 
-void LogicSignal::paint_caps(QPainter &p, vector<LogicSegment::EdgePair> &edges,
+void LogicSignal::paint_caps(QPainter &p, vector<LogicSegment::Edge> &edges,
 	double samples_per_pixel, double pixels_offset, float x_offset,
 	float low_offset, float high_offset, int64_t end_sample)
 {

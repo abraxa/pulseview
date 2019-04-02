@@ -886,7 +886,7 @@ int64_t View::get_nearest_level_change(const QPoint &p)
 		const int64_t x_offset = offset().convert_to<double>() / scale();
 		const int64_t sample_num = max(((x_offset + p.x()) * samples_per_pixel), 0.0);
 
-		vector<data::LogicSegment::EdgePair> edges =
+		vector<data::LogicSegment::Edge> edges =
 			e.signal->get_nearest_level_changes(sample_num);
 
 		if (edges.empty())
