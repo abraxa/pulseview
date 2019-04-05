@@ -99,7 +99,7 @@ private:
 private:
 	Logic& owner_;
 
-	uint64_t prev_sample_value_;
+	vector<uint64_t> prev_sample_value_;
 	vector<RLEData> sub_signals_;
 
 	friend struct LogicSegmentTest::Pow2;

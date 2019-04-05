@@ -53,6 +53,8 @@ LogicSegment::LogicSegment(pv::data::Logic& owner, uint32_t segment_id,
 {
 	// Create all sub-signals
 	sub_signals_.resize(unit_size_ * 8);
+
+	prev_sample_value_.resize((unit_size + 7) / 8);
 }
 
 LogicSegment::~LogicSegment()
@@ -213,48 +215,74 @@ void LogicSegment::get_surrounding_edges(vector<Edge> &dest,
 
 void LogicSegment::process_new_samples(void *data, uint64_t samples)
 {
-	uint64_t sample_mask = 0;
-	for (uint8_t i = 0; i < (unit_size_ * 8); i++)
-		sample_mask += (1 << i);
+	// To iterate over the sample data, we use uint64 to compare up to 64 signals at a time
 
-	for (uint64_t i = 0; i < samples; i++) {
-		const uint64_t* ptr = (uint64_t*)( (uint64_t)data + i * unit_size_ );
-		const uint64_t sample_value = (*ptr) & sample_mask;
+	// Note: Since we access the sample data using uint64_t* regardless of the
+	// unit size, we may access memory beyond the valid range. This must be taken
+	// into account by the memory allocator for the sample data.
 
-		if (sub_signals_.front().edges.empty()) {
+	for (uint idx_64 = 0; idx_64 < ((unit_size_ + 7) / 8); idx_64++) {
+
+		const uint start_signal = 64 * idx_64;
+		const uint end_signal = std::min(start_signal + 64, sub_signals_.size());
+
+		uint64_t prev_value;
+
+		uint64_t sample_mask = 0;
+		for (uint i = start_signal; i < end_signal; i++)
+			sample_mask |= ((uint64_t)1 << (i - start_signal));
+
+		uint8_t* ptr = (uint8_t*)data + (8 * idx_64);
+
+		if (sub_signals_.at(start_signal).edges.empty()) {
 			// Sub-signals are empty, use the current state as initial state
-			prev_sample_value_ = sample_value;
+			const uint64_t sample_value = (*(uint64_t*)ptr) & sample_mask;
+
+			prev_sample_value_.push_back(sample_value);
+			prev_value = sample_value;
 
 			uint64_t compare_value = 1;
-			for (uint32_t si = 0; si < sub_signals_.size(); si++) {
+			for (uint si = start_signal; si < end_signal; si++) {
 				// Add the first RLE entry to all sub-signals and set the states
 				// of all sub-signal RLE entries to the current state
 				bool state = (sample_value & compare_value) == compare_value;
-				sub_signals_.at(si).edges.emplace_back(1, state);
+				// Note: 0 because this same sample will be processed again, don't count it twice
+				sub_signals_[si].edges.emplace_back(0, state);
 				compare_value <<= 1;
 			}
-			continue;
-		}
-
-		if (sample_value == prev_sample_value_) {
-			// Sample value hasn't changed, simply increase all run lengths
-			for (uint32_t si = 0; si < sub_signals_.size(); si++)
-				sub_signals_.at(si).edges.back().sample_num++;
 		} else {
-			// Demux sample and increase sub-signal run length or insert state change
-			uint64_t compare_value = 1;
-			for (uint32_t si = 0; si < sub_signals_.size(); si++) {
-				bool state = (sample_value & compare_value) == compare_value;
-
-				if (state == sub_signals_.at(si).edges.back().new_state)
-					sub_signals_.at(si).edges.back().sample_num++;
-				else
-					sub_signals_.at(si).edges.emplace_back(1, state);
-
-				compare_value <<= 1;
-			}
-			prev_sample_value_ = sample_value;
+			// Restore last used (sub-)sample value
+			prev_value = prev_sample_value_[idx_64];
 		}
+
+		for (uint64_t i = 0; i < samples; i++) {
+			const uint64_t sample_value = (*(uint64_t*)ptr) & sample_mask;
+
+			if (sample_value == prev_value) {
+				// Sample value hasn't changed, simply increase all run lengths
+				for (uint si = start_signal; si < end_signal; si++)
+					sub_signals_[si].edges.back().sample_num++;
+			} else {
+				// Demux sample and increase sub-signal run length or insert state change
+				uint64_t compare_value = 1;
+				for (uint si = start_signal; si < end_signal; si++) {
+					bool state = (sample_value & compare_value) == compare_value;
+
+					if (state == sub_signals_[si].edges.back().new_state)
+						sub_signals_[si].edges.back().sample_num++;
+					else
+						sub_signals_[si].edges.emplace_back(1, state);
+
+					compare_value <<= 1;
+				}
+				prev_value = sample_value;
+			}
+
+			ptr += unit_size_;
+		}
+
+		// Save last used (sub-)sample value
+		prev_sample_value_[idx_64] = prev_value;
 	}
 }
 
