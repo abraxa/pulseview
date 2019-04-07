@@ -221,6 +221,9 @@ void LogicSegment::process_new_samples(void *data, uint64_t samples)
 	// unit size, we may access memory beyond the valid range. This must be taken
 	// into account by the memory allocator for the sample data.
 
+	uint64_t* run_lengths[unit_size_ * 8];
+	bool states[unit_size_ * 8];
+
 	for (uint idx_64 = 0; idx_64 < ((unit_size_ + 7) / 8); idx_64++) {
 
 		const uint start_signal = 64 * idx_64;
@@ -251,27 +254,49 @@ void LogicSegment::process_new_samples(void *data, uint64_t samples)
 				compare_value <<= 1;
 			}
 		} else {
-			// Restore last used (sub-)sample value
+			// Restore last used (sub-)sample value and the run lengths
 			prev_value = prev_sample_value_[idx_64];
 		}
+
+		for (uint si = start_signal; si < end_signal; si++) {
+			Edge& e = sub_signals_[si].edges.back();
+			run_lengths[si] = &(sub_signals_[si].edges.back().sample_num);
+			states[si] = e.new_state;
+		}
+
+		// This variable is used to quickly handle samples that don't change
+		// in value. Instead of iterating over all signals for all samples
+		// and increasing each run length by 1, we accumulate the length of
+		// all non-changing samples and add them in one go
+		uint64_t same_sample_count = 0;
 
 		for (uint64_t i = 0; i < samples; i++) {
 			const uint64_t sample_value = (*(uint64_t*)ptr) & sample_mask;
 
 			if (sample_value == prev_value) {
-				// Sample value hasn't changed, simply increase all run lengths
-				for (uint si = start_signal; si < end_signal; si++)
-					sub_signals_[si].edges.back().sample_num++;
+				// Sample value hasn't changed
+				same_sample_count++;
 			} else {
+				// Sample changed, update run lengths of previous sample using
+				// the accumulated same-sample count
+				if (same_sample_count > 0) {
+					for (uint si = start_signal; si < end_signal; si++)
+						(*run_lengths[si]) += same_sample_count;
+					same_sample_count = 0;
+				}
+
 				// Demux sample and increase sub-signal run length or insert state change
 				uint64_t compare_value = 1;
 				for (uint si = start_signal; si < end_signal; si++) {
 					bool state = (sample_value & compare_value) == compare_value;
 
-					if (state == sub_signals_[si].edges.back().new_state)
-						sub_signals_[si].edges.back().sample_num++;
-					else
+					if (state == states[si])
+						(*run_lengths[si])++;
+					else {
 						sub_signals_[si].edges.emplace_back(1, state);
+						run_lengths[si] = &(sub_signals_[si].edges.back().sample_num);
+						states[si] = state;
+					}
 
 					compare_value <<= 1;
 				}
@@ -280,6 +305,11 @@ void LogicSegment::process_new_samples(void *data, uint64_t samples)
 
 			ptr += unit_size_;
 		}
+
+		// If necessary, update run lengths with accumulated same-sample count
+		if (same_sample_count > 0)
+			for (uint si = start_signal; si < end_signal; si++)
+				(*run_lengths[si]) += same_sample_count;
 
 		// Save last used (sub-)sample value
 		prev_sample_value_[idx_64] = prev_value;
