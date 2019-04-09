@@ -825,9 +825,7 @@ void DecodeSignal::mux_logic_samples(uint32_t segment_id, const int64_t start, c
 
 	// Fetch the channel segments and their data
 	vector<shared_ptr<LogicSegment> > segments;
-	vector<const uint8_t*> signal_data;
-	vector<uint8_t> signal_in_bytepos;
-	vector<uint8_t> signal_in_bitpos;
+	vector<uint8_t> signal_index;
 
 	for (data::DecodeChannel& ch : channels_)
 		if (ch.assigned_signal) {
@@ -843,15 +841,8 @@ void DecodeSignal::mux_logic_samples(uint32_t segment_id, const int64_t start, c
 			}
 			segments.push_back(segment);
 
-			uint8_t* data = new uint8_t[(end - start) * segment->unit_size()];
-			segment->get_samples(start, end, data);
-			signal_data.push_back(data);
-
-			const int bitpos = ch.assigned_signal->logic_bit_index();
-			signal_in_bytepos.push_back(bitpos / 8);
-			signal_in_bitpos.push_back(bitpos % 8);
+			signal_index.push_back(ch.assigned_signal->logic_bit_index());
 		}
-
 
 	shared_ptr<LogicSegment> output_segment;
 	try {
@@ -865,40 +856,27 @@ void DecodeSignal::mux_logic_samples(uint32_t segment_id, const int64_t start, c
 
 	// Perform the muxing of signal data into the output data
 	uint8_t* output = new uint8_t[(end - start) * output_segment->unit_size()];
-	unsigned int signal_count = signal_data.size();
 
-	for (int64_t sample_cnt = 0; !logic_mux_interrupt_ && (sample_cnt < (end - start));
-		sample_cnt++) {
+	// Clear memory because we're only going to set bits, not clear any
+	memset(output, 0, (end - start) * output_segment->unit_size());
 
-		int bitpos = 0;
-		uint8_t bytepos = 0;
+	uint8_t bitpos = 0;
+	uint8_t bytepos = 0;
 
-		const int out_sample_pos = sample_cnt * output_segment->unit_size();
-		for (unsigned int i = 0; i < output_segment->unit_size(); i++)
-			output[out_sample_pos + i] = 0;
+	for (unsigned int i = 0; !logic_mux_interrupt_ && (i < segments.size()); i++) {
 
-		for (unsigned int i = 0; i < signal_count; i++) {
-			const int in_sample_pos = sample_cnt * segments[i]->unit_size();
-			const uint8_t in_sample = 1 &
-				((signal_data[i][in_sample_pos + signal_in_bytepos[i]]) >> (signal_in_bitpos[i]));
+		segments[i]->add_subsignal_to_data(0, (end - start), output,
+			signal_index[i], bitpos, bytepos);
 
-			const uint8_t out_sample = output[out_sample_pos + bytepos];
-
-			output[out_sample_pos + bytepos] = out_sample | (in_sample << bitpos);
-
-			bitpos++;
-			if (bitpos > 7) {
-				bitpos = 0;
-				bytepos++;
-			}
+		bitpos++;
+		if (bitpos > 7) {
+			bitpos = 0;
+			bytepos++;
 		}
 	}
 
 	output_segment->append_payload(output, (end - start) * output_segment->unit_size());
 	delete[] output;
-
-	for (const uint8_t* data : signal_data)
-		delete[] data;
 }
 
 void DecodeSignal::logic_mux_proc()
