@@ -88,10 +88,10 @@ public:
 	 */
 	void get_subsampled_edges(vector<Edge> &edges,
 		uint64_t start, uint64_t end, uint32_t samples_per_pixel,
-		uint32_t sig_index, bool first_change_only = false);
+		uint32_t sig_index, bool first_change_only = false) const;
 
 	void get_surrounding_edges(vector<Edge> &dest,
-		uint64_t origin_sample, uint32_t sig_index);
+		uint64_t origin_sample, uint32_t sig_index) const;
 
 private:
 	void process_new_samples(void *data, uint64_t samples);

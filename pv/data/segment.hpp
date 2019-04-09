@@ -65,7 +65,7 @@ public:
 
 	virtual ~Segment();
 
-	uint64_t get_sample_count() const;
+	virtual uint64_t get_sample_count() const;
 
 	const pv::util::Timestamp& start_time() const;
 
@@ -84,7 +84,7 @@ public:
 protected:
 	void append_single_sample(void *data);
 	void append_samples(void *data, uint64_t samples);
-	void get_raw_samples(uint64_t start, uint64_t count, uint8_t *dest) const;
+	virtual void get_raw_samples(uint64_t start, uint64_t count, uint8_t *dest) const;
 
 	SegmentDataIterator* begin_sample_iteration(uint64_t start);
 	void continue_sample_iteration(SegmentDataIterator* it, uint64_t increase);

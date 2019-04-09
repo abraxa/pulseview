@@ -78,8 +78,8 @@ void LogicSegment::append_payload(void *data, uint64_t data_size)
 	const uint64_t prev_sample_count = sample_count_;
 	const uint64_t sample_count = data_size / unit_size_;
 
-	append_samples(data, sample_count);
 	process_new_samples(data, sample_count);
+	sample_count_ += sample_count;
 
 	if (sample_count > 1)
 		owner_.notify_samples_added(this, prev_sample_count + 1,
@@ -101,13 +101,51 @@ void LogicSegment::get_samples(int64_t start_sample,
 
 	lock_guard<recursive_mutex> lock(mutex_);
 
-	get_raw_samples(start_sample, (end_sample - start_sample), dest);
+	// Clear memory because we're only going to set bits, not clear any
+	memset(dest, 0, (end_sample - start_sample) * unit_size_);
+
+	uint bytepos = 0;
+	uint bitpos = 0;
+
+	for (uint si = 0; si < sub_signals_.size(); si++) {
+		uint64_t sample_index = 0;
+		uint64_t samples_to_create = end_sample - start_sample;
+
+		const RLEData& signal_data = sub_signals_.at(si);
+		for (const Edge& change : signal_data.edges) {
+			if (sample_index + change.sample_num < (uint64_t)start_sample) {
+				// Skip changes until we reach the start sample
+				sample_index += change.sample_num;
+				continue;
+			}
+
+			// Add samples belonging to current edge
+			uint8_t edge_value = change.new_state ? (1 << bitpos) : 0;
+			uint64_t sample_count = (sample_index < (uint64_t)start_sample) ?
+				(start_sample + change.sample_num - sample_index) :
+				min(change.sample_num, samples_to_create);
+
+			if (edge_value)
+				for (uint i = 0; i < sample_count; i++)
+					dest[(sample_index + i) * unit_size_ + bytepos] |= edge_value;
+
+			samples_to_create -= sample_count;
+			sample_index += sample_count;
+		}
+
+		bitpos++;
+		if (bitpos > 7) {
+			bytepos++;
+			bitpos = 0;
+		}
+	}
 }
+
 
 void LogicSegment::get_subsampled_edges(
 	vector<Edge> &edges,
 	uint64_t start, uint64_t end, uint32_t samples_per_pixel,
-	uint32_t sig_index, bool first_change_only)
+	uint32_t sig_index, bool first_change_only) const
 {
 	assert(start <= end);
 	assert(sig_index <= unit_size_ * 8);
@@ -127,8 +165,9 @@ void LogicSegment::get_subsampled_edges(
 	bool last_subsample_edge_state;
 	uint64_t multi_subsample_edge_length = 0;
 
-	RLEData& signal_data = sub_signals_.at(sig_index);
-	for (Edge& change : signal_data.edges) {
+	const RLEData& signal_data = sub_signals_.at(sig_index);
+
+	for (const Edge& change : signal_data.edges) {
 		if (sample_index + change.sample_num < start) {
 			// Skip changes until we reach the start sample
 			sample_index += change.sample_num;
@@ -174,7 +213,7 @@ qDebug() << "-------------------------" << "Index:" << sig_index << "SPP:" << sa
 }
 
 void LogicSegment::get_surrounding_edges(vector<Edge> &dest,
-	uint64_t origin_sample, uint32_t sig_index)
+	uint64_t origin_sample, uint32_t sig_index) const
 {
 	if (origin_sample >= sample_count_)
 		return;
