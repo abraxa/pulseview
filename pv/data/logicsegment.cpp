@@ -99,8 +99,6 @@ void LogicSegment::get_samples(int64_t start_sample,
 	assert(start_sample <= end_sample);
 	assert(dest != nullptr);
 
-	lock_guard<recursive_mutex> lock(mutex_);
-
 	// Clear memory because we're only going to set bits, not clear any
 	memset(dest, 0, (end_sample - start_sample) * unit_size_);
 
@@ -108,30 +106,8 @@ void LogicSegment::get_samples(int64_t start_sample,
 	uint bitpos = 0;
 
 	for (uint si = 0; si < sub_signals_.size(); si++) {
-		uint64_t sample_index = 0;
-		uint64_t samples_to_create = end_sample - start_sample;
 
-		const RLEData& signal_data = sub_signals_.at(si);
-		for (const Edge& change : signal_data.edges) {
-			if (sample_index + change.sample_num < (uint64_t)start_sample) {
-				// Skip changes until we reach the start sample
-				sample_index += change.sample_num;
-				continue;
-			}
-
-			// Add samples belonging to current edge
-			uint8_t edge_value = change.new_state ? (1 << bitpos) : 0;
-			uint64_t sample_count = (sample_index < (uint64_t)start_sample) ?
-				(start_sample + change.sample_num - sample_index) :
-				min(change.sample_num, samples_to_create);
-
-			if (edge_value)
-				for (uint i = 0; i < sample_count; i++)
-					dest[(sample_index + i) * unit_size_ + bytepos] |= edge_value;
-
-			samples_to_create -= sample_count;
-			sample_index += sample_count;
-		}
+		add_subsignal_to_data(start_sample, end_sample, dest, si, bitpos, bytepos);
 
 		bitpos++;
 		if (bitpos > 7) {
@@ -156,10 +132,12 @@ void LogicSegment::add_subsignal_to_data(int64_t start_sample, int64_t end_sampl
 
 	uint64_t sample_index = 0;
 	uint64_t samples_to_create = end_sample - start_sample;
+	size_t dest_idx = bytepos;
 
 	const RLEData& signal_data = sub_signals_.at(signal_idx);
+
 	for (const Edge& change : signal_data.edges) {
-		if (sample_index + change.sample_num < (uint64_t)start_sample) {
+		if (sample_index + change.sample_num <= (uint64_t)start_sample) {
 			// Skip changes until we reach the start sample
 			sample_index += change.sample_num;
 			continue;
@@ -168,15 +146,24 @@ void LogicSegment::add_subsignal_to_data(int64_t start_sample, int64_t end_sampl
 		// Add samples belonging to current edge
 		uint8_t edge_value = change.new_state ? (1 << bitpos) : 0;
 		uint64_t sample_count = (sample_index < (uint64_t)start_sample) ?
-			(start_sample + change.sample_num - sample_index) :
-			min(change.sample_num, samples_to_create);
+			(change.sample_num - (start_sample - sample_index)) :
+			change.sample_num;
+		sample_count = min(sample_count, samples_to_create);
 
-		if (edge_value)
-			for (uint i = 0; i < sample_count; i++)
-				dest[(sample_index + i) * unit_size_ + bytepos] |= edge_value;
+		if (edge_value) {
+			for (uint i = 0; i < sample_count; i++) {
+				assert(dest_idx < (end_sample - start_sample) * unit_size_);
+				dest[dest_idx] |= edge_value;
+				dest_idx += unit_size_;
+			}
+		} else
+			dest_idx += sample_count * unit_size_;
 
 		samples_to_create -= sample_count;
-		sample_index += sample_count;
+		sample_index += change.sample_num;
+
+		if (samples_to_create == 0)
+			break;
 	}
 }
 

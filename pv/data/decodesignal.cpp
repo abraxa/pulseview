@@ -865,7 +865,7 @@ void DecodeSignal::mux_logic_samples(uint32_t segment_id, const int64_t start, c
 
 	for (unsigned int i = 0; !logic_mux_interrupt_ && (i < segments.size()); i++) {
 
-		segments[i]->add_subsignal_to_data(0, (end - start), output,
+		segments[i]->add_subsignal_to_data(start, end, output,
 			signal_index[i], bitpos, bytepos);
 
 		bitpos++;
