@@ -230,10 +230,6 @@ void LogicSegment::get_subsampled_edges(
 	if (edges.empty() && samples_per_pixel >= sample_count_)
 		edges.emplace_back(0, sub_signals_.at(sig_index).edges.front().new_state);
 
-qDebug() << "-------------------------";
-for (Edge& change : edges) qDebug() << change.sample_num << change.new_state;
-qDebug() << "-------------------------" << "Index:" << sig_index << "SPP:" << samples_per_pixel << "Edges:" << edges.size();
-
 	(void)first_change_only;
 }
 
