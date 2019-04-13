@@ -291,7 +291,7 @@ void LogicSegment::process_new_samples(void *data, uint64_t samples)
 	for (uint idx_64 = 0; idx_64 < ((unit_size_ + 7) / 8); idx_64++) {
 
 		const uint start_signal = 64 * idx_64;
-		const uint end_signal = std::min(start_signal + 64, sub_signals_.size());
+		const uint end_signal = std::min(start_signal + 64, (uint)sub_signals_.size());
 
 		uint64_t prev_value;
 
