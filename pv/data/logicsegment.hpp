@@ -77,7 +77,7 @@ public:
 	void get_samples(int64_t start_sample, int64_t end_sample, uint8_t* dest) const;
 
 	void add_subsignal_to_data(int64_t start_sample, int64_t end_sample, uint8_t* dest,
-		uint signal_idx, uint8_t bitpos, uint8_t bytepos) const;
+		uint8_t dest_unit_size, uint signal_idx, uint8_t bitpos, uint8_t bytepos) const;
 
 	/**
 	 * Parses a logic data segment to generate a list of transitions

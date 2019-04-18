@@ -107,7 +107,8 @@ void LogicSegment::get_samples(int64_t start_sample,
 
 	for (uint si = 0; si < sub_signals_.size(); si++) {
 
-		add_subsignal_to_data(start_sample, end_sample, dest, si, bitpos, bytepos);
+		add_subsignal_to_data(start_sample, end_sample, dest, unit_size_,
+			si, bitpos, bytepos);
 
 		bitpos++;
 		if (bitpos > 7) {
@@ -118,7 +119,7 @@ void LogicSegment::get_samples(int64_t start_sample,
 }
 
 void LogicSegment::add_subsignal_to_data(int64_t start_sample, int64_t end_sample,
-	uint8_t* dest, uint signal_idx, uint8_t bitpos, uint8_t bytepos) const
+	uint8_t* dest, uint8_t dest_unit_size, uint signal_idx, uint8_t bitpos, uint8_t bytepos) const
 {
 	assert(start_sample >= 0);
 	assert(start_sample <= (int64_t)sample_count_);
@@ -126,6 +127,7 @@ void LogicSegment::add_subsignal_to_data(int64_t start_sample, int64_t end_sampl
 	assert(end_sample <= (int64_t)sample_count_);
 	assert(start_sample <= end_sample);
 	assert(dest != nullptr);
+	assert(dest_unit_size > 0);
 	assert(signal_idx < sub_signals_.size());
 
 	lock_guard<recursive_mutex> lock(mutex_);
@@ -152,12 +154,12 @@ void LogicSegment::add_subsignal_to_data(int64_t start_sample, int64_t end_sampl
 
 		if (edge_value) {
 			for (uint i = 0; i < sample_count; i++) {
-				assert(dest_idx < (end_sample - start_sample) * unit_size_);
+				assert(dest_idx < (end_sample - start_sample) * dest_unit_size);
 				dest[dest_idx] |= edge_value;
-				dest_idx += unit_size_;
+				dest_idx += dest_unit_size;
 			}
 		} else
-			dest_idx += sample_count * unit_size_;
+			dest_idx += sample_count * dest_unit_size;
 
 		samples_to_create -= sample_count;
 		sample_index += change.sample_num;
