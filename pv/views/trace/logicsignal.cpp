@@ -211,7 +211,9 @@ void LogicSignal::paint_mid(QPainter &p, ViewItemPaintParams &pp)
 	vector<LogicSegment::Edge> edges;
 	segment->get_subsampled_edges(edges, start_sample, end_sample,
 		samples_per_pixel, base_->index());
-	assert(edges.size() >= 1);
+
+	if (edges.empty())
+		return;
 
 	const float first_sample_x =
 		pp.left() + (start_sample / samples_per_pixel - pixels_offset);

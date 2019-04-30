@@ -561,7 +561,9 @@ void AnalogSignal::paint_logic_mid(QPainter &p, ViewItemPaintParams &pp)
 	vector<LogicSegment::Edge> edges;
 	segment->get_subsampled_edges(edges, start_sample, end_sample,
 		samples_per_pixel, 0);
-	assert(edges.size() >= 1);
+
+	if (edges.empty())
+		return;
 
 	const float first_sample_x =
 		pp.left() + (start_sample / samples_per_pixel - pixels_offset);
