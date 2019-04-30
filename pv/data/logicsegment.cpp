@@ -182,6 +182,8 @@ void LogicSegment::get_subsampled_edges(
 
 	lock_guard<recursive_mutex> lock(mutex_);
 
+	const Edge* cur_edge = sub_signals_.at(sig_index).edges.data();
+
 	// Make sure we only process as many samples as we have
 	if (end > get_sample_count())
 		end = get_sample_count();
@@ -194,20 +196,21 @@ void LogicSegment::get_subsampled_edges(
 
 	const RLEData& signal_data = sub_signals_.at(sig_index);
 
-	for (const Edge& change : signal_data.edges) {
-		if (sample_index + change.sample_num < start) {
+	uint edge_count = signal_data.edges.size();
+	for (uint i = 0; i < edge_count; i++, cur_edge++) {
+		if (sample_index + cur_edge->sample_num < start) {
 			// Skip changes until we reach the start sample
-			sample_index += change.sample_num;
+			sample_index += cur_edge->sample_num;
 			pixel_sample_count = sample_index % samples_per_pixel;
 			continue;
 		}
 
-		if (pixel_sample_count + change.sample_num < samples_per_pixel) {
+		if (pixel_sample_count + cur_edge->sample_num < samples_per_pixel) {
 			// Edge occupies the same pixel as the last edge, so don't add it
 			multi_subsample_edges = true;
-			last_subsample_edge_state = change.new_state;
-			multi_subsample_edge_length += change.sample_num;
-			pixel_sample_count += change.sample_num;
+			last_subsample_edge_state = cur_edge->new_state;
+			multi_subsample_edge_length += cur_edge->sample_num;
+			pixel_sample_count += cur_edge->sample_num;
 
 		} else {
 			// Edge is on a new pixel, add previous edge if needed
@@ -219,8 +222,8 @@ void LogicSegment::get_subsampled_edges(
 			}
 
 			// Add current edge
-			edges.emplace_back(max(sample_index, start), change.new_state);
-			sample_index += change.sample_num;
+			edges.emplace_back(max(sample_index, start), cur_edge->new_state);
+			sample_index += cur_edge->sample_num;
 			pixel_sample_count = sample_index % samples_per_pixel;
 		}
 
