@@ -54,18 +54,21 @@ class LogicSegment : public Segment
 	Q_OBJECT
 
 private:
-	static const uint parallelBlockSize;
+	static const uint chunkSize;
 
 public:
 	struct __attribute__((packed)) Edge {
-		Edge(uint64_t n, bool s) :
-			sample_num(n), new_state(s) {}
-		uint64_t sample_num;
+		uint32_t sample_num;
 		bool new_state;
 	};
 
 	struct RLEData {
-		vector<Edge> edges;
+		vector<Edge*> edge_chunks;
+		vector<uint64_t> chunk_start_samples;      /// Contains sample number of first edge
+		vector<uint64_t> chunk_last_edge_samples;  /// Contains sample number of last edge
+		Edge* current_chunk;
+		uint64_t used_edges, unused_edges;
+		uint64_t edge_count;
 	};
 
 public:
@@ -85,6 +88,8 @@ public:
 	/**
 	 * Parses a logic data segment to generate a list of transitions
 	 * in a time interval to a given level of detail.
+	 * May not have more than 5 parameters because of QtConcurrent limitations.
+	 * Expects start and end sample to be within the same chunk.
 	 * @param[out] edges The vector to place the edges into.
 	 * @param[in] start The start sample index.
 	 * @param[in] end The end sample index.
@@ -93,17 +98,20 @@ public:
 	 * @param[in] sig_index The index of the signal.
 	 */
 	void get_subsampled_edges_worker(vector<Edge> *edges,
-		uint64_t start, uint64_t end, uint32_t samples_per_pixel,
+		uint64_t start, uint64_t end, double samples_per_pixel,
 		uint32_t sig_index);
 
 	void get_subsampled_edges(vector<Edge> &edges,
-		uint64_t start, uint64_t end, uint32_t samples_per_pixel,
+		uint64_t start, uint64_t end, double samples_per_pixel,
 		uint32_t sig_index, bool first_change_only = false);
 
 	void get_surrounding_edges(vector<Edge> &dest,
 		uint64_t origin_sample, uint32_t sig_index);
 
 private:
+	Edge* add_state_to_sub_signal(RLEData* rle_data, uint64_t samplenum,
+		bool state, uint64_t length);
+
 	void process_new_samples(void *data, uint64_t samples);
 
 private:
