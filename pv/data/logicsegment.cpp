@@ -33,6 +33,8 @@
 #include <libsigrokcxx/libsigrokcxx.hpp>
 
 #include <QDebug>
+#include <QThread>
+#include <QtConcurrent/QtConcurrentRun>
 
 using std::lock_guard;
 using std::recursive_mutex;
@@ -45,6 +47,8 @@ using sigrok::Logic;
 
 namespace pv {
 namespace data {
+
+const uint LogicSegment::parallelBlockSize = 1000000;
 
 LogicSegment::LogicSegment(pv::data::Logic& owner, uint32_t segment_id,
 	unsigned int unit_size,	uint64_t samplerate) :
@@ -169,18 +173,16 @@ void LogicSegment::add_subsignal_to_data(int64_t start_sample, int64_t end_sampl
 	}
 }
 
-void LogicSegment::get_subsampled_edges(
-	vector<Edge> &edges,
+void LogicSegment::get_subsampled_edges_worker(
+	vector<Edge> *edges,
 	uint64_t start, uint64_t end, uint32_t samples_per_pixel,
-	uint32_t sig_index, bool first_change_only) const
+	uint32_t sig_index)
 {
 	assert(start <= end);
 	assert(sig_index <= unit_size_ * 8);
 
 	if (samples_per_pixel == 0)
 		samples_per_pixel = 1;
-
-	lock_guard<recursive_mutex> lock(mutex_);
 
 	const Edge* cur_edge = sub_signals_.at(sig_index).edges.data();
 
@@ -215,14 +217,14 @@ void LogicSegment::get_subsampled_edges(
 		} else {
 			// Edge is on a new pixel, add previous edge if needed
 			if (multi_subsample_edges) {
-				edges.emplace_back(sample_index, last_subsample_edge_state);
+				edges->emplace_back(sample_index, last_subsample_edge_state);
 				sample_index += multi_subsample_edge_length;
 				multi_subsample_edges = false;
 				multi_subsample_edge_length = 0;
 			}
 
 			// Add current edge
-			edges.emplace_back(max(sample_index, start), cur_edge->new_state);
+			edges->emplace_back(max(sample_index, start), cur_edge->new_state);
 			sample_index += cur_edge->sample_num;
 			pixel_sample_count = sample_index % samples_per_pixel;
 		}
@@ -232,14 +234,66 @@ void LogicSegment::get_subsampled_edges(
 	}
 
 	// Make sure at least one edge is present when zoomed out
-	if (edges.empty() && samples_per_pixel >= sample_count_)
-		edges.emplace_back(0, sub_signals_.at(sig_index).edges.front().new_state);
+	if (edges->empty() && samples_per_pixel >= sample_count_)
+		edges->emplace_back(0, sub_signals_.at(sig_index).edges.front().new_state);
+//qDebug() << "  processing" << start << "to" << end << "yielded" << edges->size() << "from" << edge_count;
+}
 
-	(void)first_change_only;
+void LogicSegment::get_subsampled_edges(
+	vector<Edge> &edges,
+	uint64_t start, uint64_t end, uint32_t samples_per_pixel,
+	uint32_t sig_index, bool first_change_only)
+{
+	uint64_t length = end - start;
+
+	lock_guard<recursive_mutex> lock(mutex_);
+
+	if ((length <= parallelBlockSize) || first_change_only) {
+		// Workload too small to create worker threads
+		get_subsampled_edges_worker(&edges, start, end, samples_per_pixel, sig_index);
+		// TBD: first_change_only implementation missing
+		return;
+	}
+
+	vector< QFuture<void> > threads;
+	vector< vector<Edge>* > thread_edges;
+	uint64_t s = start;
+	uint64_t e;
+
+	// Break up the work load into multiple blocks, processed in separate threads
+	while (length > parallelBlockSize) {
+		e = min(s + parallelBlockSize, end);
+
+		thread_edges.push_back(new vector<Edge>());
+		QFuture<void> f = QtConcurrent::run(this, &LogicSegment::get_subsampled_edges_worker,
+			thread_edges.back(), s, e, samples_per_pixel, sig_index);
+		threads.push_back(f);
+
+		s += parallelBlockSize;
+		length -= parallelBlockSize;
+	}
+
+	// Process the final block directly
+	e = min(s + parallelBlockSize, end);
+
+	thread_edges.push_back(new vector<Edge>());
+	get_subsampled_edges_worker(thread_edges.back(), s, e, samples_per_pixel, sig_index);
+
+	// Wait for all threads to finish
+	for (QFuture<void>& f : threads)
+		f.waitForFinished();
+
+	// Re-assemble all edges extracted from the processed blocks
+	for (vector<Edge>* te : thread_edges) {
+		edges.insert(edges.end(), te->begin(), te->end());
+		// Merge boundary edges without actual state changes
+
+		// TBD
+	}
 }
 
 void LogicSegment::get_surrounding_edges(vector<Edge> &dest,
-	uint64_t origin_sample, uint32_t sig_index) const
+	uint64_t origin_sample, uint32_t sig_index)
 {
 	if (origin_sample >= sample_count_)
 		return;
