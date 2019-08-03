@@ -122,6 +122,8 @@ public:
 	void assign_signal(const uint16_t channel_id, const SignalBase *signal);
 	int get_assigned_signal_count() const;
 
+	void update_output_signals();
+
 	void set_initial_pin_state(const uint16_t channel_id, const int init_state);
 
 	virtual double get_samplerate() const;
@@ -217,6 +219,7 @@ private:
 
 	static void annotation_callback(srd_proto_data *pdata, void *decode_signal);
 	static void binary_callback(srd_proto_data *pdata, void *decode_signal);
+	static void logic_output_callback(srd_proto_data *pdata, void *decode_signal);
 
 Q_SIGNALS:
 	void decoder_stacked(void* decoder); ///< decoder is of type decode::Decoder*
@@ -262,6 +265,9 @@ private:
 	bool decode_paused_;
 
 	QString error_message_;
+
+	map<const srd_decoder*, shared_ptr<Logic>> output_logic_;
+	vector< shared_ptr<SignalBase>> output_signals_;
 };
 
 } // namespace data
