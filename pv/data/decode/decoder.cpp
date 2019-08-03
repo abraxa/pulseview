@@ -282,6 +282,26 @@ const DecodeBinaryClassInfo* Decoder::get_binary_class(uint32_t id) const
 	return &(bin_classes_.at(id));
 }
 
+bool Decoder::has_logic_output() const
+{
+	return (srd_decoder_->logic_output_channels != nullptr);
+}
+
+const vector<DecoderLogicOutputChannel> Decoder::logic_output_channels() const
+{
+	vector<DecoderLogicOutputChannel> result;
+
+	for (GSList *l = srd_decoder_->logic_output_channels; l; l = l->next) {
+		const srd_decoder_logic_output_channel* ch_data =
+			(srd_decoder_logic_output_channel*)l->data;
+
+		result.emplace_back(QString::fromUtf8(ch_data->id),
+			QString::fromUtf8(ch_data->desc), ch_data->samplerate);
+	}
+
+	return result;
+}
+
 }  // namespace decode
 }  // namespace data
 }  // namespace pv
