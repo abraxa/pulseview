@@ -112,6 +112,9 @@ private:
 	Edge* add_state_to_sub_signal(RLEData* rle_data, uint64_t samplenum,
 		bool state, uint64_t length);
 
+	static inline uint64_t get_64_samples(const uint8_t *ptr,
+		uint64_t sample_mask);
+
 	void process_new_samples(void *data, uint64_t samples);
 
 private:

@@ -507,6 +507,18 @@ LogicSegment::Edge* LogicSegment::add_state_to_sub_signal(RLEData* rle_data,
 	return e;
 }
 
+uint64_t LogicSegment::get_64_samples(const uint8_t *ptr, uint64_t sample_mask)
+{
+	uint64_t r = 0;
+	int n = 0;
+	while (sample_mask != 0) {
+		r |= (((uint64_t)*ptr++) & sample_mask) << n;
+		n += 8;
+		sample_mask >>= 8;
+	}
+	return r;
+}
+
 void LogicSegment::process_new_samples(void *data, uint64_t samples)
 {
 	// To iterate over the sample data, we use uint64 to compare up to 64 signals at a time
@@ -533,7 +545,7 @@ void LogicSegment::process_new_samples(void *data, uint64_t samples)
 
 		if (sub_signals_.at(start_signal).edge_count == 0) {
 			// Sub-signals are empty, use the current state as initial state
-			const uint64_t sample_value = (*(uint64_t*)ptr) & sample_mask;
+			const uint64_t sample_value = get_64_samples(ptr, sample_mask);
 
 			prev_sample_value_.push_back(sample_value);
 			prev_value = sample_value;
@@ -568,7 +580,7 @@ void LogicSegment::process_new_samples(void *data, uint64_t samples)
 		uint64_t same_sample_count = 0;
 
 		for (uint64_t i = 0; i < samples; i++) {
-			const uint64_t sample_value = (*(uint64_t*)ptr) & sample_mask;
+			const uint64_t sample_value = get_64_samples(ptr, sample_mask);
 
 			if (sample_value == prev_value) {
 				// Sample value hasn't changed
