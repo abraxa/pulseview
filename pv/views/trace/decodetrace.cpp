@@ -1832,9 +1832,9 @@ void DecodeTrace::on_animation_timer()
 		unsigned int height_delta = r.expanded_height - default_row_height_;
 
 		if (r.expanding) {
-			if (r.height < r.expanded_height) {
+			if (r.height  < r.expanded_height) {
 				r.anim_height += height_delta / (float)AnimationDurationInTicks;
-				r.height = r.anim_height;
+				r.height = min((int)r.anim_height, (int)r.expanded_height);
 				r.anim_shape += ArrowSize / (float)AnimationDurationInTicks;
 				animation_finished = false;
 			} else
@@ -1844,7 +1844,7 @@ void DecodeTrace::on_animation_timer()
 		if (r.collapsing) {
 			if (r.height > default_row_height_) {
 				r.anim_height -= height_delta / (float)AnimationDurationInTicks;
-				r.height = r.anim_height;
+				r.height = max((int)r.anim_height, (int)0);
 				r.anim_shape -= ArrowSize / (float)AnimationDurationInTicks;
 				animation_finished = false;
 			} else
