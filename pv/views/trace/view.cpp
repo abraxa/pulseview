@@ -29,7 +29,6 @@
 #include <cmath>
 #include <iostream>
 #include <iterator>
-#include <unordered_set>
 
 #include <QApplication>
 #include <QDebug>
@@ -81,8 +80,6 @@ using std::pair;
 using std::set;
 using std::set_difference;
 using std::shared_ptr;
-using std::unordered_map;
-using std::unordered_set;
 using std::vector;
 
 namespace pv {
@@ -1331,12 +1328,11 @@ void View::update_layout()
 
 TraceTreeItemOwner* View::find_prevalent_trace_group(
 	const shared_ptr<sigrok::ChannelGroup> &group,
-	const unordered_map<shared_ptr<data::SignalBase>, shared_ptr<Signal> >
-		&signal_map)
+	const map<shared_ptr<data::SignalBase>, shared_ptr<Signal> > &signal_map)
 {
 	assert(group);
 
-	unordered_set<TraceTreeItemOwner*> owners;
+	set<TraceTreeItemOwner*> owners;
 	vector<TraceTreeItemOwner*> owner_list;
 
 	// Make a set and a list of all the owners
@@ -1368,8 +1364,7 @@ TraceTreeItemOwner* View::find_prevalent_trace_group(
 
 vector< shared_ptr<Trace> > View::extract_new_traces_for_channels(
 	const vector< shared_ptr<sigrok::Channel> > &channels,
-	const unordered_map<shared_ptr<data::SignalBase>, shared_ptr<Signal> >
-		&signal_map,
+	const map<shared_ptr<data::SignalBase>, shared_ptr<Signal> > &signal_map,
 	set< shared_ptr<Trace> > &add_list)
 {
 	vector< shared_ptr<Trace> > filtered_traces;
@@ -1699,8 +1694,7 @@ void View::signals_changed()
 		inserter(remove_traces, remove_traces.begin()));
 
 	// Make a look-up table of sigrok Channels to pulseview Signals
-	unordered_map<shared_ptr<data::SignalBase>, shared_ptr<Signal> >
-		signal_map;
+	map<shared_ptr<data::SignalBase>, shared_ptr<Signal> > signal_map;
 	for (const shared_ptr<Signal>& sig : signals_)
 		signal_map[sig->base()] = sig;
 
@@ -1780,7 +1774,7 @@ void View::signals_changed()
 	new_top_level_items.insert(new_top_level_items.end(),
 		new_top_level_signals.begin(), new_top_level_signals.end());
 
-	// Enqueue any remaining traces i.e. decode traces
+	// Enqueue any remaining traces i.e. decode tracesgi
 	new_top_level_items.insert(new_top_level_items.end(),
 		add_traces.begin(), add_traces.end());
 
@@ -1801,7 +1795,7 @@ void View::signals_changed()
 
 	// Add and position the pending top levels items
 	int offset = v_extents().second;
-	for (auto item : new_top_level_items) {
+	for (shared_ptr<TraceTreeItem> item : new_top_level_items) {
 		add_child_item(item);
 
 		// Position the item after the last item or at the top if there is none
