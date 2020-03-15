@@ -256,6 +256,7 @@ private:
 	QString error_message_;
 
 	map<const srd_decoder*, shared_ptr<Logic>> output_logic_;
+	map<const srd_decoder*, vector<uint8_t>> output_logic_muxed_data_;
 	vector< shared_ptr<SignalBase>> output_signals_;
 };
 
