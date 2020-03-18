@@ -66,6 +66,11 @@ DecodeSignal::DecodeSignal(pv::Session &session) :
 DecodeSignal::~DecodeSignal()
 {
 	reset_decode(true);
+
+	while (output_signals_.size() > 0) {
+		session_.remove_generated_signal(output_signals_.back());
+		output_signals_.pop_back();
+	}
 }
 
 const vector< shared_ptr<Decoder> >& DecodeSignal::decoder_stack() const
@@ -107,11 +112,37 @@ void DecodeSignal::remove_decoder(int index)
 	assert(index < (int)stack_.size());
 
 	// Find the decoder in the stack
-	auto iter = stack_.begin();
-	for (int i = 0; i < index; i++, iter++)
-		assert(iter != stack_.end());
+	auto iter = stack_.begin() + index;
+	assert(iter != stack_.end());
 
-	decoder_removed(iter->get());
+	shared_ptr<Decoder> dec = *iter;
+
+	// Remove all associated logic output signals if there are any
+	if (dec->has_logic_output()) {
+		shared_ptr<Logic> output_logic = output_logic_.at(dec->get_srd_decoder());
+
+		// Remove one signal at a time to maintain vector integrity
+		bool all_logic_outputs_removed;
+		do {
+			all_logic_outputs_removed = true;
+			unsigned int i = 0;
+			for (shared_ptr<SignalBase>& sb : output_signals_) {
+				if (sb->logic_data() == output_logic) {
+					session_.remove_generated_signal(sb);
+					output_signals_.erase(output_signals_.begin() + i);
+					all_logic_outputs_removed = false;
+					break;
+				}
+				i++;
+			}
+		} while (!all_logic_outputs_removed);
+
+		output_logic_.erase(dec->get_srd_decoder());
+		output_logic_muxed_data_.erase(dec->get_srd_decoder());
+	}
+
+
+	decoder_removed(dec.get());
 
 	// Delete the element
 	stack_.erase(iter);
@@ -402,7 +433,6 @@ void DecodeSignal::update_output_signals()
 		}
 	}
 
-	// TODO Delete signals that no longer have a corresponding decoder (also from session)
 	// TODO Assert that all sample rates are the same as the session's
 	// TODO Set colors to the same as the decoder's background color
 }
