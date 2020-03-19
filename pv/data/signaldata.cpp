@@ -17,7 +17,7 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "signaldata.hpp"
+#include "signaldata.hpp"  /* With the full path, lupdate can't find the header */
 
 namespace pv {
 namespace data {

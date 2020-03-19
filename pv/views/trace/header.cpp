@@ -17,12 +17,6 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "header.hpp"
-#include "view.hpp"
-
-#include "signal.hpp"
-#include "tracegroup.hpp"
-
 #include <algorithm>
 #include <cassert>
 
@@ -34,8 +28,13 @@
 #include <QPainter>
 #include <QRect>
 
-#include <pv/session.hpp>
-#include <pv/widgets/popup.hpp>
+#include "header.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/session.hpp"
+#include "pv/views/trace/signal.hpp"
+#include "pv/views/trace/tracegroup.hpp"
+#include "pv/views/trace/view.hpp"
+#include "pv/widgets/popup.hpp"
 
 using boost::make_filter_iterator;
 

@@ -17,23 +17,21 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "deviceoptions.hpp"
-
 #include <QFormLayout>
 #include <QListWidget>
 
-#include <pv/prop/property.hpp>
-
 #include <libsigrokcxx/libsigrokcxx.hpp>
 
-using std::shared_ptr;
+#include "deviceoptions.hpp"  /* With the full path, lupdate can't find the header */
 
-using sigrok::Device;
+#include "pv/prop/property.hpp"
+
+using std::shared_ptr;
 
 namespace pv {
 namespace popups {
 
-DeviceOptions::DeviceOptions(shared_ptr<Device> device, QWidget *parent) :
+DeviceOptions::DeviceOptions(shared_ptr<sigrok::Device> device, QWidget *parent) :
 	Popup(parent),
 	device_(device),
 	layout_(this),

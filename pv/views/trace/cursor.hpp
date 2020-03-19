@@ -20,11 +20,11 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_CURSOR_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_CURSOR_HPP
 
-#include "timemarker.hpp"
-
 #include <memory>
 
 #include <QSizeF>
+
+#include "pv/views/trace/timemarker.hpp"
 
 using std::shared_ptr;
 

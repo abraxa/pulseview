@@ -20,11 +20,9 @@
 #include <QMenu>
 #include <QMouseEvent>
 
-#include "view.hpp"
-
-#include "marginwidget.hpp"
-
-#include <pv/widgets/popup.hpp>
+#include "pv/views/trace/marginwidget.hpp"
+#include "pv/views/trace/view.hpp"
+#include "pv/widgets/popup.hpp"
 
 using std::shared_ptr;
 

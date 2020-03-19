@@ -17,7 +17,7 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "tracepalette.hpp"
+#include "pv/views/trace/tracepalette.hpp"
 
 namespace pv {
 namespace views {

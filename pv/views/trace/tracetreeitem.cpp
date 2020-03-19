@@ -19,9 +19,8 @@
 
 #include <cassert>
 
-#include "view.hpp"
-
-#include "tracetreeitem.hpp"
+#include "pv/views/trace/tracetreeitem.hpp"
+#include "pv/views/trace/view.hpp"
 
 namespace pv {
 namespace views {

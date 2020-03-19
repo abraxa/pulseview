@@ -26,7 +26,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 
-#include <pv/views/trace/signal.hpp>
+#include "pv/views/trace/signal.hpp"
 
 using std::pair;
 using std::shared_ptr;

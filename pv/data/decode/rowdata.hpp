@@ -24,7 +24,7 @@
 
 #include <libsigrokdecode/libsigrokdecode.h>
 
-#include <pv/data/decode/annotation.hpp>
+#include "pv/data/decode/annotation.hpp"
 
 using std::deque;
 using std::vector;

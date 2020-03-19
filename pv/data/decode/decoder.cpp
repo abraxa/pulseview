@@ -24,10 +24,9 @@
 #include <libsigrokcxx/libsigrokcxx.hpp>
 #include <libsigrokdecode/libsigrokdecode.h>
 
-#include "decoder.hpp"
+#include "decoder.hpp"  /* With the full path, lupdate can't find the header */
 
-#include <pv/data/signalbase.hpp>
-#include <pv/data/decodesignal.hpp>
+#include "pv/data/decode/row.hpp"
 
 using std::map;
 using std::string;

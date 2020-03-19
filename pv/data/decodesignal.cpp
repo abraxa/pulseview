@@ -23,15 +23,16 @@
 
 #include <QDebug>
 
-#include "logic.hpp"
-#include "logicsegment.hpp"
-#include "decodesignal.hpp"
-#include "signaldata.hpp"
+#include "decodesignal.hpp"  /* With the full path, lupdate can't find the header */
 
-#include <pv/data/decode/decoder.hpp>
-#include <pv/data/decode/row.hpp>
-#include <pv/globalsettings.hpp>
-#include <pv/session.hpp>
+#include "pv/data/logic.hpp"
+#include "pv/data/logicsegment.hpp"
+#include "pv/data/signaldata.hpp"
+#include "pv/globalsettings.hpp"
+#include "pv/session.hpp"
+#include "pv/data/decode/decoder.hpp"
+#include "pv/data/decode/row.hpp"
+#include "pv/data/decode/rowdata.hpp"
 
 using std::dynamic_pointer_cast;
 using std::lock_guard;

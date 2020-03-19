@@ -20,14 +20,14 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_LOGICSIGNAL_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_LOGICSIGNAL_HPP
 
+#include <memory>
+
 #include <QCache>
 #include <QColor>
 #include <QDebug>
 #include <QSpinBox>
 
-#include "signal.hpp"
-
-#include <memory>
+#include "pv/views/trace/signal.hpp"
 
 using std::pair;
 using std::shared_ptr;

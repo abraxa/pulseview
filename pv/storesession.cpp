@@ -19,21 +19,21 @@
 
 #include <cassert>
 
-#include "storesession.hpp"
-
 #include <QSettings>
 
-#include <pv/data/analog.hpp>
-#include <pv/data/analogsegment.hpp>
-#include <pv/data/logic.hpp>
-#include <pv/data/logicsegment.hpp>
-#include <pv/data/signalbase.hpp>
-#include <pv/devicemanager.hpp>
-#include <pv/devices/device.hpp>
-#include <pv/globalsettings.hpp>
-#include <pv/session.hpp>
-
 #include <libsigrokcxx/libsigrokcxx.hpp>
+
+#include "storesession.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/globalsettings.hpp"
+#include "pv/session.hpp"
+#include "pv/data/analog.hpp"
+#include "pv/data/analogsegment.hpp"
+#include "pv/data/logic.hpp"
+#include "pv/data/logicsegment.hpp"
+#include "pv/data/signalbase.hpp"
+#include "pv/devicemanager.hpp"
+#include "pv/devices/device.hpp"
 
 using std::deque;
 using std::ios_base;

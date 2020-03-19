@@ -32,7 +32,7 @@
 #include <QPushButton>
 #include <QSignalMapper>
 
-#include <pv/widgets/popup.hpp>
+#include "pv/widgets/popup.hpp"
 
 using std::function;
 using std::map;
@@ -44,7 +44,6 @@ namespace sigrok {
 }
 
 namespace pv {
-
 class Session;
 
 namespace binding {

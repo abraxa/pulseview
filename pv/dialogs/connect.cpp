@@ -19,16 +19,16 @@
 
 #include <cassert>
 
-#include <libsigrokcxx/libsigrokcxx.hpp>
-
 #include <QGroupBox>
 #include <QLabel>
 #include <QRadioButton>
 
-#include "connect.hpp"
+#include <libsigrokcxx/libsigrokcxx.hpp>
 
-#include <pv/devicemanager.hpp>
-#include <pv/devices/hardwaredevice.hpp>
+#include "connect.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/devicemanager.hpp"
+#include "pv/devices/hardwaredevice.hpp"
 
 using std::list;
 using std::map;

@@ -20,9 +20,9 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_TRIGGER_MARKER_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_TRIGGER_MARKER_HPP
 
-#include "timeitem.hpp"
-
 #include <QPoint>
+
+#include "pv/views/trace/timeitem.hpp"
 
 namespace pv {
 namespace views {

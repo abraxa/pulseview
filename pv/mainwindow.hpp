@@ -29,9 +29,9 @@
 #include <QTabWidget>
 #include <QToolButton>
 
-#include "session.hpp"
-#include "subwindows/subwindowbase.hpp"
-#include "views/viewbase.hpp"
+#include "pv/session.hpp"
+#include "pv/subwindows/subwindowbase.hpp"
+#include "pv/views/viewbase.hpp"
 
 using std::list;
 using std::map;

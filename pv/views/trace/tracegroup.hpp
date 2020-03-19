@@ -20,8 +20,8 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_TRACEGROUP_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_TRACEGROUP_HPP
 
-#include "tracetreeitem.hpp"
-#include "tracetreeitemowner.hpp"
+#include "pv/views/trace/tracetreeitem.hpp"
+#include "pv/views/trace/tracetreeitemowner.hpp"
 
 using std::pair;
 

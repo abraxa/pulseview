@@ -34,19 +34,19 @@
 #include <QLabel>
 #include <QString>
 
-#include "analogsignal.hpp"
-#include "logicsignal.hpp"
-#include "view.hpp"
+#include <libsigrokcxx/libsigrokcxx.hpp>
 
+#include "analogsignal.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/globalsettings.hpp"
 #include "pv/util.hpp"
 #include "pv/data/analog.hpp"
 #include "pv/data/analogsegment.hpp"
 #include "pv/data/logic.hpp"
 #include "pv/data/logicsegment.hpp"
 #include "pv/data/signalbase.hpp"
-#include "pv/globalsettings.hpp"
-
-#include <libsigrokcxx/libsigrokcxx.hpp>
+#include "pv/views/trace/logicsignal.hpp"
+#include "pv/views/trace/view.hpp"
 
 using std::deque;
 using std::div;

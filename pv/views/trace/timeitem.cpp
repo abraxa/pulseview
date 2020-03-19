@@ -17,9 +17,9 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "signal.hpp"
-#include "timeitem.hpp"
-#include "view.hpp"
+#include "pv/views/trace/signal.hpp"
+#include "pv/views/trace/timeitem.hpp"
+#include "pv/views/trace/view.hpp"
 
 namespace pv {
 namespace views {

@@ -20,6 +20,7 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_SIGNAL_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_SIGNAL_HPP
 
+#include <cstdint>
 #include <memory>
 
 #include <QComboBox>
@@ -27,12 +28,9 @@
 #include <QVariant>
 #include <QWidgetAction>
 
-#include <cstdint>
-
-#include <pv/data/logicsegment.hpp>
-
-#include "trace.hpp"
-#include "viewitemowner.hpp"
+#include "pv/data/logicsegment.hpp"
+#include "pv/views/trace/trace.hpp"
+#include "pv/views/trace/viewitemowner.hpp"
 
 using std::shared_ptr;
 

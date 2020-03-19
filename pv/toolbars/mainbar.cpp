@@ -31,29 +31,29 @@
 #include <QSettings>
 #include <QToolTip>
 
-#include "mainbar.hpp"
-
 #include <boost/algorithm/string/join.hpp>
 
-#include <pv/devicemanager.hpp>
-#include <pv/devices/hardwaredevice.hpp>
-#include <pv/devices/inputfile.hpp>
-#include <pv/devices/sessionfile.hpp>
-#include <pv/dialogs/connect.hpp>
-#include <pv/dialogs/inputoutputoptions.hpp>
-#include <pv/dialogs/storeprogress.hpp>
-#include <pv/mainwindow.hpp>
-#include <pv/popups/channels.hpp>
-#include <pv/popups/deviceoptions.hpp>
-#include <pv/util.hpp>
-#include <pv/views/trace/view.hpp>
-#include <pv/widgets/exportmenu.hpp>
-#include <pv/widgets/importmenu.hpp>
-#ifdef ENABLE_DECODE
-#include <pv/data/decodesignal.hpp>
-#endif
-
 #include <libsigrokcxx/libsigrokcxx.hpp>
+
+#include "mainbar.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/mainwindow.hpp"
+#include "pv/devicemanager.hpp"
+#include "pv/devices/hardwaredevice.hpp"
+#include "pv/devices/inputfile.hpp"
+#include "pv/devices/sessionfile.hpp"
+#include "pv/dialogs/connect.hpp"
+#include "pv/dialogs/inputoutputoptions.hpp"
+#include "pv/dialogs/storeprogress.hpp"
+#include "pv/popups/channels.hpp"
+#include "pv/popups/deviceoptions.hpp"
+#include "pv/views/trace/cursorpair.hpp"
+#include "pv/views/trace/view.hpp"
+#include "pv/widgets/exportmenu.hpp"
+#include "pv/widgets/importmenu.hpp"
+#ifdef ENABLE_DECODE
+#include "pv/data/decodesignal.hpp"
+#endif
 
 using std::back_inserter;
 using std::copy;

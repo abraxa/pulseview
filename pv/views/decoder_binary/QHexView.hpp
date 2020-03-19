@@ -32,12 +32,18 @@
 
 #include <QAbstractScrollArea>
 
-#include <pv/data/decodesignal.hpp>
+#include "pv/data/decodesignal.hpp"
 
 using std::pair;
 using std::size_t;
 using pv::data::DecodeBinaryClass;
 using pv::data::DecodeBinaryDataChunk;
+
+namespace pv {
+
+namespace views {
+
+namespace decoder_binary {
 
 class QHexView: public QAbstractScrollArea
 {
@@ -97,5 +103,9 @@ private:
 
 	vector<QColor> chunk_colors_;
 };
+
+} // namespace decoder_binary
+} // namespace views
+} // namespace pv
 
 #endif /* PULSEVIEW_PV_VIEWS_DECODERBINARY_QHEXVIEW_H */

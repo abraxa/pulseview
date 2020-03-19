@@ -23,10 +23,11 @@
 #include <QMenu>
 #include <QMouseEvent>
 
-#include <pv/globalsettings.hpp>
+#include "ruler.hpp"  /* With the full path, lupdate can't find the header */
 
-#include "ruler.hpp"
-#include "view.hpp"
+#include "pv/globalsettings.hpp"
+#include "pv/views/trace/flag.hpp"
+#include "pv/views/trace/view.hpp"
 
 using namespace Qt;
 

@@ -17,10 +17,6 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef ENABLE_DECODE
-#include <libsigrokdecode/libsigrokdecode.h>
-#endif
-
 #include <algorithm>
 #include <cassert>
 #include <cstdarg>
@@ -38,24 +34,28 @@
 #include <QShortcut>
 #include <QWidget>
 
-#include "mainwindow.hpp"
-
-#include "application.hpp"
-#include "devicemanager.hpp"
-#include "devices/hardwaredevice.hpp"
-#include "dialogs/settings.hpp"
-#include "globalsettings.hpp"
-#include "toolbars/mainbar.hpp"
-#include "util.hpp"
-#include "views/trace/view.hpp"
-#include "views/trace/standardbar.hpp"
+#include <libsigrokcxx/libsigrokcxx.hpp>
 
 #ifdef ENABLE_DECODE
-#include "subwindows/decoder_selector/subwindow.hpp"
-#include "views/decoder_binary/view.hpp"
+#include <libsigrokdecode/libsigrokdecode.h>
 #endif
 
-#include <libsigrokcxx/libsigrokcxx.hpp>
+#include "mainwindow.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/application.hpp"
+#include "pv/devicemanager.hpp"
+#include "pv/globalsettings.hpp"
+#include "pv/util.hpp"
+#include "pv/devices/hardwaredevice.hpp"
+#include "pv/dialogs/settings.hpp"
+#include "pv/toolbars/mainbar.hpp"
+#include "pv/views/trace/standardbar.hpp"
+#include "pv/views/trace/view.hpp"
+
+#ifdef ENABLE_DECODE
+#include "pv/subwindows/decoder_selector/subwindow.hpp"
+#include "pv/views/decoder_binary/view.hpp"
+#endif
 
 using std::dynamic_pointer_cast;
 using std::make_shared;
@@ -878,6 +878,8 @@ void MainWindow::on_show_decoder_selector(Session *session)
 	for (shared_ptr<Session>& s : sessions_)
 		if (s.get() == session)
 			add_subwindow(subwindows::SubWindowTypeDecoderSelector, *s);
+#else
+	(void)session;
 #endif
 }
 

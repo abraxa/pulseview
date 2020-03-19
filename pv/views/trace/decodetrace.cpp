@@ -44,21 +44,23 @@ extern "C" {
 #include <QTextStream>
 #include <QToolTip>
 
-#include "decodetrace.hpp"
-#include "view.hpp"
-#include "viewport.hpp"
+#include "decodetrace.hpp"  /* With the full path, lupdate can't find the header */
 
-#include <pv/globalsettings.hpp>
-#include <pv/session.hpp>
-#include <pv/strnatcmp.hpp>
-#include <pv/data/decodesignal.hpp>
-#include <pv/data/decode/annotation.hpp>
-#include <pv/data/decode/decoder.hpp>
-#include <pv/data/logic.hpp>
-#include <pv/data/logicsegment.hpp>
-#include <pv/widgets/decodergroupbox.hpp>
-#include <pv/widgets/decodermenu.hpp>
-#include <pv/widgets/flowlayout.hpp>
+#include "pv/globalsettings.hpp"
+#include "pv/session.hpp"
+#include "pv/strnatcmp.hpp"
+#include "pv/binding/decoder.hpp"
+#include "pv/data/decodesignal.hpp"
+#include "pv/data/decode/decoder.hpp"
+#include "pv/data/decode/row.hpp"
+#include "pv/data/logic.hpp"
+#include "pv/data/logicsegment.hpp"
+#include "pv/views/trace/cursorpair.hpp"
+#include "pv/views/trace/view.hpp"
+#include "pv/views/trace/viewport.hpp"
+#include "pv/widgets/decodergroupbox.hpp"
+#include "pv/widgets/decodermenu.hpp"
+#include "pv/widgets/flowlayout.hpp"
 
 using std::abs;
 using std::find_if;

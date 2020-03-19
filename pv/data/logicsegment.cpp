@@ -27,10 +27,11 @@
 #include <cstring>
 #include <cstdint>
 
-#include "logic.hpp"
-#include "logicsegment.hpp"
-
 #include <libsigrokcxx/libsigrokcxx.hpp>
+
+#include "logic.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/data/logicsegment.hpp"
 
 using std::lock_guard;
 using std::recursive_mutex;

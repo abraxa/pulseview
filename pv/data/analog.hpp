@@ -20,12 +20,12 @@
 #ifndef PULSEVIEW_PV_DATA_ANALOG_HPP
 #define PULSEVIEW_PV_DATA_ANALOG_HPP
 
-#include "signaldata.hpp"
-
 #include <deque>
 #include <memory>
 
 #include <QObject>
+
+#include "pv/data/signaldata.hpp"
 
 using std::deque;
 using std::shared_ptr;

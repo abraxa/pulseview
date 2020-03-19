@@ -31,11 +31,25 @@
 
 #include <libsigrokdecode/libsigrokdecode.h>
 
-#include <pv/data/decode/decoder.hpp>
-#include <pv/data/decode/row.hpp>
-#include <pv/data/decode/rowdata.hpp>
-#include <pv/data/signalbase.hpp>
-#include <pv/util.hpp>
+#include "pv/util.hpp"
+#include "pv/data/signalbase.hpp"
+
+namespace pv {
+class Session;
+
+namespace data {
+class Logic;
+class LogicSegment;
+class SignalData;
+
+namespace decode {
+class Annotation;
+struct DecodeBinaryClassInfo;
+struct DecodeChannel;
+class Decoder;
+class Row;
+class RowData;
+}
 
 using std::atomic;
 using std::condition_variable;
@@ -52,15 +66,6 @@ using pv::data::decode::Decoder;
 using pv::data::decode::Row;
 using pv::data::decode::RowData;
 
-namespace pv {
-class Session;
-
-namespace data {
-
-class Logic;
-class LogicSegment;
-class SignalBase;
-class SignalData;
 
 struct DecodeBinaryDataChunk
 {

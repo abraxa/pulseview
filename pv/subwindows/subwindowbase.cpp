@@ -17,14 +17,18 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef ENABLE_DECODE
-#include <libsigrokdecode/libsigrokdecode.h>
-#endif
 
 #include <QWidget>
 
+#ifdef ENABLE_DECODE
+#include <libsigrokdecode/libsigrokdecode.h>
+#include "pv/data/decodesignal.hpp"
+#endif
+
+#include "subwindowbase.hpp"  /* With the full path, lupdate can't find the header */
+
 #include "pv/session.hpp"
-#include "pv/subwindows/subwindowbase.hpp"
+#include "pv/binding/device.hpp"
 
 using std::shared_ptr;
 

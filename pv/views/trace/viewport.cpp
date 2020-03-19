@@ -22,18 +22,15 @@
 #include <cmath>
 #include <limits>
 
-#include "signal.hpp"
-#include "view.hpp"
-#include "viewitempaintparams.hpp"
-#include "viewport.hpp"
-
-#include <pv/session.hpp>
-
+#include <QDebug>
 #include <QMouseEvent>
 #include <QScreen>
 #include <QWindow>
 
-#include <QDebug>
+#include "pv/views/trace/timeitem.hpp"
+#include "pv/views/trace/view.hpp"
+#include "pv/views/trace/viewitempaintparams.hpp"
+#include "pv/views/trace/viewport.hpp"
 
 using std::abs;
 using std::back_inserter;

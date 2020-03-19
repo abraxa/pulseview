@@ -24,7 +24,7 @@
 
 #include <QPropertyAnimation>
 
-#include "viewitem.hpp"
+#include "pv/views/trace/viewitem.hpp"
 
 using std::enable_shared_from_this;
 using std::pair;

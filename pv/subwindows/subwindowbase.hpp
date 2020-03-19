@@ -27,18 +27,20 @@
 #include <QToolBar>
 #include <QWidget>
 
-#include <pv/data/signalbase.hpp>
-
-#ifdef ENABLE_DECODE
-#include <pv/data/decodesignal.hpp>
-#endif
-
 using std::shared_ptr;
 using std::unordered_set;
 
 namespace pv {
-
 class Session;
+
+namespace data {
+class SignalBase;
+#ifdef ENABLE_DECODE
+class DecodeSignal;
+}
+
+using pv::data::DecodeSignal;
+#endif
 
 namespace subwindows {
 

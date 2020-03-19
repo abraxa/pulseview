@@ -25,7 +25,7 @@
 
 #include <QProgressDialog>
 
-#include <pv/storesession.hpp>
+#include "pv/storesession.hpp"
 
 using std::map;
 using std::pair;

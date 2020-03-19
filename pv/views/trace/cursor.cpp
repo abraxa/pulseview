@@ -17,11 +17,9 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cursor.hpp"
-
-#include "pv/util.hpp"
-#include "ruler.hpp"
-#include "view.hpp"
+#include <cassert>
+#include <cstdio>
+#include <limits>
 
 #include <QApplication>
 #include <QBrush>
@@ -31,9 +29,12 @@
 #include <QRect>
 #include <QRectF>
 
-#include <cassert>
-#include <cstdio>
-#include <limits>
+#include "cursor.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/util.hpp"
+#include "pv/views/trace/cursorpair.hpp"
+#include "pv/views/trace/ruler.hpp"
+#include "pv/views/trace/view.hpp"
 
 using std::abs; // NOLINT. Force usage of std::abs() instead of C's abs().
 using std::shared_ptr;

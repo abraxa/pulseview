@@ -41,25 +41,27 @@
 
 #include <libsigrokcxx/libsigrokcxx.hpp>
 
-#include "analogsignal.hpp"
-#include "header.hpp"
-#include "logicsignal.hpp"
-#include "ruler.hpp"
-#include "signal.hpp"
-#include "tracegroup.hpp"
-#include "triggermarker.hpp"
-#include "view.hpp"
-#include "viewport.hpp"
-
-#include "pv/data/logic.hpp"
-#include "pv/data/logicsegment.hpp"
-#include "pv/devices/device.hpp"
 #include "pv/globalsettings.hpp"
 #include "pv/session.hpp"
 #include "pv/util.hpp"
+#include "pv/data/logic.hpp"
+#include "pv/data/logicsegment.hpp"
+#include "pv/devices/device.hpp"
+#include "pv/views/trace/analogsignal.hpp"
+#include "pv/views/trace/cursorpair.hpp"
+#include "pv/views/trace/flag.hpp"
+#include "pv/views/trace/header.hpp"
+#include "pv/views/trace/logicsignal.hpp"
+#include "pv/views/trace/ruler.hpp"
+#include "pv/views/trace/signal.hpp"
+#include "pv/views/trace/tracegroup.hpp"
+#include "pv/views/trace/timeitem.hpp"
+#include "pv/views/trace/triggermarker.hpp"
+#include "pv/views/trace/view.hpp"
+#include "pv/views/trace/viewport.hpp"
 
 #ifdef ENABLE_DECODE
-#include "decodetrace.hpp"
+#include "pv/views/trace/decodetrace.hpp"
 #endif
 
 using pv::data::SignalData;

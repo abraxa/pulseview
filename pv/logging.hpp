@@ -20,14 +20,14 @@
 #ifndef PULSEVIEW_PV_LOGGING_HPP
 #define PULSEVIEW_PV_LOGGING_HPP
 
-#include "globalsettings.hpp"
-
 #include <mutex>
 
 #include <QtGlobal>
 #include <QObject>
 #include <QString>
 #include <QStringList>
+
+#include "pv/globalsettings.hpp"
 
 using std::mutex;
 

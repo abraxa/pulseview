@@ -17,9 +17,6 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "timemarker.hpp"
-#include "view.hpp"
-#include "ruler.hpp"
 
 #include <QColor>
 #include <QFormLayout>
@@ -29,7 +26,12 @@
 
 #include <libsigrokcxx/libsigrokcxx.hpp>
 
-#include <pv/widgets/popup.hpp>
+#include "flag.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/views/trace/ruler.hpp"
+#include "pv/views/trace/timemarker.hpp"
+#include "pv/views/trace/view.hpp"
+#include "pv/widgets/popup.hpp"
 
 using std::enable_shared_from_this;
 using std::shared_ptr;

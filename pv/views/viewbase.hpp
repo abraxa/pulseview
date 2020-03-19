@@ -30,8 +30,7 @@
 #include <QTimer>
 #include <QWidget>
 
-#include <pv/data/signalbase.hpp>
-#include <pv/util.hpp>
+#include "pv/util.hpp"
 
 #ifdef ENABLE_DECODE
 #include <pv/data/decodesignal.hpp>
@@ -41,8 +40,11 @@ using std::shared_ptr;
 using std::vector;
 
 namespace pv {
-
 class Session;
+
+namespace data {
+class SignalBase;
+}
 
 namespace view {
 class DecodeTrace;
@@ -52,7 +54,7 @@ class Signal;
 namespace views {
 
 // When adding an entry here, don't forget to update ViewTypeNames as well
-enum ViewType {
+enum ViewType : uint8_t {
 	ViewTypeTrace,
 #ifdef ENABLE_DECODE
 	ViewTypeDecoderBinary,

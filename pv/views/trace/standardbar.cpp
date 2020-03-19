@@ -21,10 +21,10 @@
 #include <QAction>
 #include <QMessageBox>
 
-#include "standardbar.hpp"
-#include "view.hpp"
+#include "standardbar.hpp"  /* With the full path, lupdate can't find the header */
 
-#include <pv/mainwindow.hpp>
+#include "pv/mainwindow.hpp"
+#include "pv/views/trace/view.hpp"
 
 using pv::views::trace::View;
 

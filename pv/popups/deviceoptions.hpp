@@ -23,16 +23,17 @@
 #include <QGroupBox>
 #include <QVBoxLayout>
 
-#include <pv/binding/device.hpp>
-#include <pv/widgets/popup.hpp>
+#include "pv/binding/device.hpp"
+#include "pv/widgets/popup.hpp"
 
 using std::shared_ptr;
 
 namespace sigrok {
-	class Device;
+class Device;
 }
 
 namespace pv {
+
 namespace popups {
 
 class DeviceOptions : public pv::widgets::Popup

@@ -19,9 +19,9 @@
 
 #include <QString>
 
-#include "subwindow.hpp"
-
 #include <libsigrokdecode/libsigrokdecode.h>
+
+#include "subwindow.hpp"  /* With the full path, lupdate can't find the header */
 
 #define DECODERS_HAVE_TAGS \
 	((SRD_PACKAGE_VERSION_MAJOR > 0) || \

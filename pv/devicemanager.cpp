@@ -17,9 +17,6 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "devicemanager.hpp"
-#include "session.hpp"
-
 #include <cassert>
 #include <functional>
 #include <memory>
@@ -27,17 +24,20 @@
 #include <stdexcept>
 #include <string>
 
-#include <libsigrokcxx/libsigrokcxx.hpp>
+#include <boost/filesystem.hpp>
 
 #include <QApplication>
 #include <QDebug>
 #include <QObject>
 #include <QProgressDialog>
 
-#include <boost/filesystem.hpp>
+#include <libsigrokcxx/libsigrokcxx.hpp>
 
-#include <pv/devices/hardwaredevice.hpp>
-#include <pv/util.hpp>
+#include "devicemanager.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/session.hpp"
+#include "pv/util.hpp"
+#include "pv/devices/hardwaredevice.hpp"
 
 using std::bind;
 using std::list;

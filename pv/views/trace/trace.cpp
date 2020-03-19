@@ -28,12 +28,12 @@
 #include <QLineEdit>
 #include <QMenu>
 
-#include "ruler.hpp"
-#include "trace.hpp"
-#include "tracepalette.hpp"
-#include "view.hpp"
+#include "trace.hpp"  /* With the full path, lupdate can't find the header */
 
 #include "pv/globalsettings.hpp"
+#include "pv/views/trace/ruler.hpp"
+#include "pv/views/trace/tracepalette.hpp"
+#include "pv/views/trace/view.hpp"
 #include "pv/widgets/colorbutton.hpp"
 #include "pv/widgets/popup.hpp"
 

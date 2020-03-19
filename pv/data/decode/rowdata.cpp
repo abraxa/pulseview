@@ -18,12 +18,13 @@
  */
 
 #include <cassert>
+#include <deque>
 
-#include <pv/data/decode/decoder.hpp>
-#include <pv/data/decode/row.hpp>
-#include <pv/data/decode/rowdata.hpp>
+#include <QString>
 
-using std::vector;
+#include "pv/data/decode/decoder.hpp"  // For AnnotationClass
+#include "pv/data/decode/row.hpp"
+#include "pv/data/decode/rowdata.hpp"
 
 namespace pv {
 namespace data {

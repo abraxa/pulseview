@@ -17,9 +17,9 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "inputoutputoptions.hpp"
+#include "inputoutputoptions.hpp"  /* With the full path, lupdate can't find the header */
 
-#include <pv/prop/property.hpp>
+#include "pv/prop/property.hpp"
 
 using std::map;
 using std::shared_ptr;

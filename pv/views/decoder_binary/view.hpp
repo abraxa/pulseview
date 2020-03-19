@@ -25,18 +25,17 @@
 #include <QStackedWidget>
 #include <QToolButton>
 
-#include <pv/views/viewbase.hpp>
-#include <pv/data/decodesignal.hpp>
-
-#include "QHexView.hpp"
+#include "pv/views/viewbase.hpp"
 
 namespace pv {
-
 class Session;
 
 namespace views {
 
 namespace decoder_binary {
+class QHexView;
+
+using pv::views::decoder_binary::QHexView;
 
 // When adding an entry here, don't forget to update SaveTypeNames as well
 enum SaveType {

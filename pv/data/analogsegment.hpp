@@ -20,12 +20,12 @@
 #ifndef PULSEVIEW_PV_DATA_ANALOGSEGMENT_HPP
 #define PULSEVIEW_PV_DATA_ANALOGSEGMENT_HPP
 
-#include "segment.hpp"
-
 #include <utility>
 #include <vector>
 
 #include <QObject>
+
+#include "pv/data/segment.hpp"
 
 using std::enable_shared_from_this;
 using std::pair;

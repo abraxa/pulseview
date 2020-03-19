@@ -31,8 +31,8 @@
 #include <QStyle>
 #include <QtGlobal>
 
-#include "globalsettings.hpp"
-#include "application.hpp"
+#include "pv/application.hpp"
+#include "pv/globalsettings.hpp"
 
 using std::map;
 using std::pair;

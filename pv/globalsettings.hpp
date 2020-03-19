@@ -30,7 +30,7 @@
 #include <QString>
 #include <QVariant>
 
-#include "util.hpp"
+#include "pv/util.hpp"
 
 using std::map;
 using std::pair;

@@ -24,12 +24,13 @@
 #include <QMenu>
 #include <QToolTip>
 
-#include "cursorpair.hpp"
+#include "cursorpair.hpp"  /* With the full path, lupdate can't find the header */
 
 #include "pv/globalsettings.hpp"
+#include "pv/session.hpp"
 #include "pv/util.hpp"
-#include "ruler.hpp"
-#include "view.hpp"
+#include "pv/views/trace/ruler.hpp"
+#include "pv/views/trace/view.hpp"
 
 using std::max;
 using std::make_pair;

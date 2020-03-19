@@ -23,7 +23,7 @@
 #include <memory>
 #include <vector>
 
-#include "viewitemiterator.hpp"
+#include "pv/views/trace/viewitemiterator.hpp"
 
 using std::dynamic_pointer_cast;
 using std::shared_ptr;

@@ -28,18 +28,18 @@
 #include <QFormLayout>
 #include <QToolBar>
 
-#include "logicsignal.hpp"
-#include "view.hpp"
-
-#include <pv/data/logic.hpp>
-#include <pv/data/logicsegment.hpp>
-#include <pv/data/signalbase.hpp>
-#include <pv/devicemanager.hpp>
-#include <pv/devices/device.hpp>
-#include <pv/globalsettings.hpp>
-#include <pv/session.hpp>
-
 #include <libsigrokcxx/libsigrokcxx.hpp>
+
+#include "logicsignal.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/devicemanager.hpp"
+#include "pv/globalsettings.hpp"
+#include "pv/session.hpp"
+#include "pv/data/logic.hpp"
+#include "pv/data/logicsegment.hpp"
+#include "pv/data/signalbase.hpp"
+#include "pv/devices/device.hpp"
+#include "pv/views/trace/view.hpp"
 
 using std::deque;
 using std::max;

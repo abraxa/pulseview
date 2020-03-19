@@ -32,11 +32,11 @@
 #include <QToolBar>
 #include <QToolButton>
 
-#include <pv/session.hpp>
-#include <pv/views/trace/standardbar.hpp>
-#include <pv/widgets/devicetoolbutton.hpp>
-#include <pv/widgets/popuptoolbutton.hpp>
-#include <pv/widgets/sweeptimingwidget.hpp>
+#include "pv/session.hpp"
+#include "pv/views/trace/standardbar.hpp"
+#include "pv/widgets/devicetoolbutton.hpp"
+#include "pv/widgets/popuptoolbutton.hpp"
+#include "pv/widgets/sweeptimingwidget.hpp"
 
 using std::shared_ptr;
 

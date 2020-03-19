@@ -17,10 +17,9 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "logging.hpp"
-#include "globalsettings.hpp"
-
 #include <iostream>
+
+#include <QApplication>
 
 #ifdef ENABLE_DECODE
 #include <libsigrokdecode/libsigrokdecode.h> /* First, so we avoid a _POSIX_C_SOURCE warning. */
@@ -28,7 +27,8 @@
 
 #include <libsigrokcxx/libsigrokcxx.hpp>
 
-#include <QApplication>
+#include "pv/logging.hpp"
+#include "pv/globalsettings.hpp"
 
 using std::cout;
 using std::endl;

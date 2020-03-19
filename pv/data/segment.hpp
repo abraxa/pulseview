@@ -21,13 +21,13 @@
 #ifndef PULSEVIEW_PV_DATA_SEGMENT_HPP
 #define PULSEVIEW_PV_DATA_SEGMENT_HPP
 
-#include "pv/util.hpp"
-
 #include <mutex>
 #include <thread>
 #include <vector>
 
 #include <QObject>
+
+#include "pv/util.hpp"
 
 using std::recursive_mutex;
 using std::vector;

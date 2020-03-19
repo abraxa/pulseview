@@ -24,7 +24,7 @@
 #include <memory>
 #include <utility>
 
-#include "marginwidget.hpp"
+#include "pv/views/trace/marginwidget.hpp"
 
 using std::shared_ptr;
 using std::vector;

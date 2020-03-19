@@ -20,10 +20,10 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_VIEWITEMPAINTPARAMS_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_VIEWITEMPAINTPARAMS_HPP
 
-#include "pv/util.hpp"
-
 #include <QFont>
 #include <QRect>
+
+#include "pv/util.hpp"
 
 namespace pv {
 namespace views {

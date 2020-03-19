@@ -30,10 +30,9 @@
 
 #include <libsigrokcxx/libsigrokcxx.hpp>
 
+#include "signal.hpp"  /* With the full path, lupdate can't find the header */
 #include "pv/data/signalbase.hpp"
-
-#include "signal.hpp"
-#include "view.hpp"
+#include "pv/views/trace/view.hpp"
 
 using std::shared_ptr;
 

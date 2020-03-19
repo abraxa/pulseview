@@ -32,15 +32,12 @@
 #include <QSizeF>
 #include <QSplitter>
 
-#include <pv/globalsettings.hpp>
-#include <pv/util.hpp>
-#include <pv/data/signaldata.hpp>
-#include <pv/views/viewbase.hpp>
-
-#include "cursorpair.hpp"
-#include "flag.hpp"
-#include "trace.hpp"
-#include "tracetreeitemowner.hpp"
+#include "pv/globalsettings.hpp"
+#include "pv/util.hpp"
+#include "pv/data/signaldata.hpp"
+#include "pv/views/trace/trace.hpp"
+#include "pv/views/trace/tracetreeitemowner.hpp"
+#include "pv/views/viewbase.hpp"
 
 using std::list;
 using std::map;
@@ -63,13 +60,16 @@ class Logic;
 namespace views {
 
 namespace trace {
-
+class CursorPair;
 class DecodeTrace;
+class Flag;
 class Header;
 class Ruler;
 class Signal;
-class Viewport;
+class TimeItem;
+class TimeMarker;
 class TriggerMarker;
+class Viewport;
 
 class CustomScrollArea : public QAbstractScrollArea
 {

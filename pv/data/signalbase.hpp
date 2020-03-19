@@ -35,7 +35,7 @@
 
 #include <libsigrokcxx/libsigrokcxx.hpp>
 
-#include "segment.hpp"
+#include "pv/data/segment.hpp"
 
 using std::atomic;
 using std::condition_variable;
@@ -51,7 +51,6 @@ class Channel;
 
 namespace pv {
 namespace data {
-
 class Analog;
 class AnalogSegment;
 class DecoderStack;

@@ -24,6 +24,8 @@
 
 #include <libsigrokcxx/libsigrokcxx.hpp>
 
+#include "viewbase.hpp"  /* With the full path, lupdate can't find the header */
+
 #include "pv/session.hpp"
 #include "pv/util.hpp"
 #include "pv/data/segment.hpp"

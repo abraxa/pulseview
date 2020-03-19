@@ -27,14 +27,14 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
-#include "channels.hpp"
+#include "channels.hpp"  /* With the full path, lupdate can't find the header */
 
-#include <pv/session.hpp>
-#include <pv/binding/device.hpp>
-#include <pv/data/logic.hpp>
-#include <pv/data/logicsegment.hpp>
-#include <pv/data/signalbase.hpp>
-#include <pv/devices/device.hpp>
+#include "pv/session.hpp"
+#include "pv/binding/device.hpp"
+#include "pv/data/logic.hpp"
+#include "pv/data/logicsegment.hpp"
+#include "pv/data/signalbase.hpp"
+#include "pv/devices/device.hpp"
 
 using std::make_shared;
 using std::map;

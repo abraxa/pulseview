@@ -25,7 +25,7 @@
 #include <QMenu>
 #include <QPainter>
 
-#include "tracegroup.hpp"
+#include "tracegroup.hpp"  /* With the full path, lupdate can't find the header */
 
 using std::any_of;
 using std::pair;

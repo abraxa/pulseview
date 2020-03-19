@@ -22,9 +22,9 @@
 #include <QDebug>
 #include <QMessageBox>
 
-#include "pv/session.hpp"
+#include "storeprogress.hpp"  /* With the full path, lupdate can't find the header */
 
-#include "storeprogress.hpp"
+#include "pv/session.hpp"
 
 using std::map;
 using std::pair;

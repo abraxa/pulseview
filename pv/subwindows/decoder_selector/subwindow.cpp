@@ -29,11 +29,11 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 
-#include "pv/session.hpp"
-#include "pv/subwindows/decoder_selector/subwindow.hpp"
-
 #include <libsigrokdecode/libsigrokdecode.h>
-#include "subwindow.hpp"  // Required only for lupdate since above include isn't recognized
+
+#include "subwindow.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/session.hpp"
 
 #define DECODERS_HAVE_TAGS \
 	((SRD_PACKAGE_VERSION_MAJOR > 0) || \

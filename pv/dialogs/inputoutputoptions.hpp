@@ -25,7 +25,7 @@
 #include <QGroupBox>
 #include <QVBoxLayout>
 
-#include <pv/binding/inputoutput.hpp>
+#include "pv/binding/inputoutput.hpp"
 
 using std::map;
 using std::shared_ptr;

@@ -19,8 +19,9 @@
 
 #include <cassert>
 
-#include "analog.hpp"
-#include "analogsegment.hpp"
+#include "analog.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/data/analogsegment.hpp"
 
 using std::deque;
 using std::max;

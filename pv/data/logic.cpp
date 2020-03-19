@@ -19,8 +19,8 @@
 
 #include <cassert>
 
-#include "logic.hpp"
-#include "logicsegment.hpp"
+#include "pv/data/logic.hpp"
+#include "pv/data/logicsegment.hpp"
 
 using std::deque;
 using std::max;

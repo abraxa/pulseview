@@ -30,20 +30,18 @@
 
 #include <libsigrokdecode/libsigrokdecode.h>
 
-#include "view.hpp"
-#include "QHexView.hpp"
+#include "view.hpp"  /* With the full path, lupdate can't find the header */
 
 #include "pv/globalsettings.hpp"
-#include "pv/session.hpp"
-#include "pv/util.hpp"
 #include "pv/data/decode/decoder.hpp"
+#include "pv/views/decoder_binary/QHexView.hpp"
+
+using std::shared_ptr;
 
 using pv::data::DecodeSignal;
 using pv::data::SignalBase;
 using pv::data::decode::Decoder;
 using pv::util::Timestamp;
-
-using std::shared_ptr;
 
 namespace pv {
 namespace views {

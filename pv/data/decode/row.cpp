@@ -19,10 +19,13 @@
 
 #include <cassert>
 
-#include "decoder.hpp"
-#include "row.hpp"
+#include <QString>
 
 #include <libsigrokdecode/libsigrokdecode.h>
+
+#include "row.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/data/decode/decoder.hpp"
 
 namespace pv {
 namespace data {

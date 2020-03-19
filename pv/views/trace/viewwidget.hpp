@@ -25,7 +25,7 @@
 #include <QPoint>
 #include <QWidget>
 
-#include <pv/util.hpp>
+#include "pv/util.hpp"
 
 using std::shared_ptr;
 using std::vector;

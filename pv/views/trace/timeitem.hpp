@@ -20,7 +20,7 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_TIMEITEM_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_TIMEITEM_HPP
 
-#include "viewitem.hpp"
+#include "pv/views/trace/viewitem.hpp"
 
 namespace pv {
 namespace views {

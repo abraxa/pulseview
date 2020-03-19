@@ -22,16 +22,14 @@
 
 #include <vector>
 
-#include <pv/data/decode/annotation.hpp>
-#include <pv/data/decode/decoder.hpp>
-
 struct srd_decoder;
 struct srd_decoder_annotation_row;
+
+using std::vector;
 
 namespace pv {
 namespace data {
 namespace decode {
-
 struct AnnotationClass;
 class Decoder;
 

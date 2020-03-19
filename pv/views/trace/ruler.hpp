@@ -25,8 +25,8 @@
 
 #include <boost/optional.hpp>
 
-#include "marginwidget.hpp"
-#include <pv/util.hpp>
+#include "pv/util.hpp"
+#include "pv/views/trace/marginwidget.hpp"
 
 using std::function;
 using std::pair;

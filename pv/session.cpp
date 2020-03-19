@@ -27,41 +27,35 @@
 #include <QDebug>
 #include <QFileInfo>
 
-#include "devicemanager.hpp"
-#include "mainwindow.hpp"
-#include "session.hpp"
-#include "util.hpp"
-
-#include "data/analog.hpp"
-#include "data/analogsegment.hpp"
-#include "data/decode/decoder.hpp"
-#include "data/logic.hpp"
-#include "data/logicsegment.hpp"
-#include "data/signalbase.hpp"
-
-#include "devices/hardwaredevice.hpp"
-#include "devices/inputfile.hpp"
-#include "devices/sessionfile.hpp"
-
-#include "toolbars/mainbar.hpp"
-
-#include "views/trace/analogsignal.hpp"
-#include "views/trace/decodetrace.hpp"
-#include "views/trace/logicsignal.hpp"
-#include "views/trace/signal.hpp"
-#include "views/trace/view.hpp"
-
 #include <libsigrokcxx/libsigrokcxx.hpp>
+
+#ifdef ENABLE_DECODE
+#include <libsigrokdecode/libsigrokdecode.h>
+#include "data/decodesignal.hpp"
+#endif
 
 #ifdef ENABLE_FLOW
 #include <gstreamermm.h>
 #include <libsigrokflow/libsigrokflow.hpp>
 #endif
 
-#ifdef ENABLE_DECODE
-#include <libsigrokdecode/libsigrokdecode.h>
-#include "data/decodesignal.hpp"
-#endif
+#include "session.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/devicemanager.hpp"
+#include "pv/mainwindow.hpp"
+#include "pv/util.hpp"
+#include "pv/data/analog.hpp"
+#include "pv/data/analogsegment.hpp"
+#include "pv/data/logic.hpp"
+#include "pv/data/logicsegment.hpp"
+#include "pv/data/signalbase.hpp"
+#include "pv/devices/hardwaredevice.hpp"
+#include "pv/devices/inputfile.hpp"
+#include "pv/devices/sessionfile.hpp"
+#include "pv/toolbars/mainbar.hpp"
+#include "pv/views/trace/cursorpair.hpp"
+#include "pv/views/trace/flag.hpp"
+#include "pv/views/trace/view.hpp"
 
 using std::bad_alloc;
 using std::dynamic_pointer_cast;
@@ -86,6 +80,8 @@ using std::unique_lock;
 using std::unique_ptr;
 using std::vector;
 
+using Glib::VariantBase;
+
 using sigrok::Analog;
 using sigrok::Channel;
 using sigrok::ConfigKey;
@@ -94,10 +90,9 @@ using sigrok::Error;
 using sigrok::InputFormat;
 using sigrok::Logic;
 using sigrok::Meta;
+using sigrok::Option;
 using sigrok::Packet;
 using sigrok::Session;
-
-using Glib::VariantBase;
 
 #ifdef ENABLE_FLOW
 using Gst::Bus;
@@ -105,10 +100,8 @@ using Gst::ElementFactory;
 using Gst::Pipeline;
 #endif
 
+using pv::data::SignalBase;
 using pv::util::Timestamp;
-using pv::views::trace::Signal;
-using pv::views::trace::AnalogSignal;
-using pv::views::trace::LogicSignal;
 
 namespace pv {
 
@@ -1527,7 +1520,7 @@ void Session::data_feed_in(shared_ptr<sigrok::Device> device,
 
 	case SR_DF_LOGIC:
 		try {
-			feed_in_logic(dynamic_pointer_cast<Logic>(packet->payload()));
+			feed_in_logic(dynamic_pointer_cast<sigrok::Logic>(packet->payload()));
 		} catch (bad_alloc&) {
 			out_of_memory_ = true;
 			device_->stop();
@@ -1536,7 +1529,7 @@ void Session::data_feed_in(shared_ptr<sigrok::Device> device,
 
 	case SR_DF_ANALOG:
 		try {
-			feed_in_analog(dynamic_pointer_cast<Analog>(packet->payload()));
+			feed_in_analog(dynamic_pointer_cast<sigrok::Analog>(packet->payload()));
 		} catch (bad_alloc&) {
 			out_of_memory_ = true;
 			device_->stop();

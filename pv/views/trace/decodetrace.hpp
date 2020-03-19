@@ -20,9 +20,6 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_DECODETRACE_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_DECODETRACE_HPP
 
-#include <config.h>
-#include "trace.hpp"
-
 #include <list>
 #include <map>
 #include <memory>
@@ -37,13 +34,36 @@
 #include <QSignalMapper>
 #include <QTimer>
 
-#include <pv/binding/decoder.hpp>
-#include <pv/data/decode/decoder.hpp>
-#include <pv/data/decode/annotation.hpp>
-#include <pv/data/decode/row.hpp>
-#include <pv/data/signalbase.hpp>
+#include "config.h"
+#include "pv/data/decode/annotation.hpp"
+#include "pv/views/trace/trace.hpp"
 
 #define DECODETRACE_SHOW_RENDER_TIME 0
+
+struct srd_channel;
+struct srd_decoder;
+
+namespace pv {
+class Session;
+
+namespace binding {
+class Decoder;
+}
+
+namespace data {
+class DecodeSignal;
+class SignalBase;
+
+namespace decode {
+struct DecodeChannel;
+class Decoder;
+class Row;
+}
+}  // namespace data
+
+namespace widgets {
+class DecoderGroupBox;
+}
 
 using std::deque;
 using std::list;
@@ -57,27 +77,6 @@ using pv::data::SignalBase;
 using pv::data::decode::Annotation;
 using pv::data::decode::Decoder;
 using pv::data::decode::Row;
-
-struct srd_channel;
-struct srd_decoder;
-
-namespace pv {
-
-class Session;
-
-namespace data {
-struct DecodeChannel;
-class DecodeSignal;
-
-namespace decode {
-class Decoder;
-class Row;
-}
-}  // namespace data
-
-namespace widgets {
-class DecoderGroupBox;
-}
 
 namespace views {
 namespace trace {

@@ -32,7 +32,10 @@
 #include <set>
 #include <string>
 #include <thread>
+#include <unordered_set>
 #include <vector>
+
+#include <glibmm/variant.h>
 
 #include <QObject>
 #include <QSettings>
@@ -44,9 +47,8 @@
 #include <libsigrokflow/libsigrokflow.hpp>
 #endif
 
-#include "util.hpp"
-#include "views/viewbase.hpp"
-
+#include "pv/util.hpp"
+#include "pv/views/viewbase.hpp"  /* Shouldn't be included but https://bugreports.qt.io/browse/QTBUG-36589 */
 
 using std::function;
 using std::map;
@@ -69,6 +71,7 @@ struct srd_channel;
 namespace sigrok {
 class Analog;
 class Channel;
+class Context;
 class Device;
 class InputFormat;
 class Logic;
@@ -77,12 +80,9 @@ class Option;
 class OutputFormat;
 class Packet;
 class Session;
-}  // namespace sigrok
-
-using sigrok::Option;
+}
 
 namespace pv {
-
 class DeviceManager;
 
 namespace data {
@@ -104,8 +104,20 @@ class MainBar;
 }
 
 namespace views {
+/* enum ViewType : uint8_t;  Enable once https://bugreports.qt.io/browse/QTBUG-36589 is fixed */
 class ViewBase;
 }
+
+using pv::data::DecodeSignal;
+using pv::data::AnalogSegment;
+using pv::data::Logic;
+using pv::data::LogicSegment;
+using pv::data::SignalBase;
+using pv::data::SignalData;
+using pv::devices::Device;
+using pv::toolbars::MainBar;
+using pv::views::ViewBase;
+using pv::views::ViewType;
 
 class Session : public QObject
 {
@@ -131,19 +143,19 @@ public:
 
 	shared_ptr<sigrok::Session> session() const;
 
-	shared_ptr<devices::Device> device() const;
+	shared_ptr<Device> device() const;
 
 	QString name() const;
 
 	void set_name(QString name);
 
-	const vector< shared_ptr<views::ViewBase> > views() const;
+	const vector< shared_ptr<ViewBase> > views() const;
 
-	shared_ptr<views::ViewBase> main_view() const;
+	shared_ptr<ViewBase> main_view() const;
 
-	shared_ptr<pv::toolbars::MainBar> main_bar() const;
+	shared_ptr<MainBar> main_bar() const;
 
-	void set_main_bar(shared_ptr<pv::toolbars::MainBar> main_bar);
+	void set_main_bar(shared_ptr<MainBar> main_bar);
 
 	/**
 	 * Indicates whether the captured data was saved to disk already or not
@@ -161,12 +173,12 @@ public:
 	/**
 	 * Attempts to set device instance, may fall back to demo if needed
 	 */
-	void select_device(shared_ptr<devices::Device> device);
+	void select_device(shared_ptr<Device> device);
 
 	/**
 	 * Sets device instance that will be used in the next capture session.
 	 */
-	void set_device(shared_ptr<devices::Device> device);
+	void set_device(shared_ptr<Device> device);
 
 	void set_default_device();
 
@@ -192,22 +204,22 @@ public:
 
 	vector<util::Timestamp> get_triggers(uint32_t segment_id) const;
 
-	void register_view(shared_ptr<views::ViewBase> view);
+	void register_view(shared_ptr<ViewBase> view);
 
-	void deregister_view(shared_ptr<views::ViewBase> view);
+	void deregister_view(shared_ptr<ViewBase> view);
 
-	bool has_view(shared_ptr<views::ViewBase> view);
+	bool has_view(shared_ptr<ViewBase> view);
 
-	const vector< shared_ptr<data::SignalBase> > signalbases() const;
-	void add_generated_signal(shared_ptr<data::SignalBase> signal);
-	void remove_generated_signal(shared_ptr<data::SignalBase> signal);
+	const vector< shared_ptr<SignalBase> > signalbases() const;
+	void add_generated_signal(shared_ptr<SignalBase> signal);
+	void remove_generated_signal(shared_ptr<SignalBase> signal);
 
 	bool all_segments_complete(uint32_t segment_id) const;
 
 #ifdef ENABLE_DECODE
-	shared_ptr<data::DecodeSignal> add_decode_signal();
+	shared_ptr<DecodeSignal> add_decode_signal();
 
-	void remove_decode_signal(shared_ptr<data::DecodeSignal> signal);
+	void remove_decode_signal(shared_ptr<DecodeSignal> signal);
 #endif
 
 private:
@@ -215,12 +227,12 @@ private:
 
 	void update_signals();
 
-	shared_ptr<data::SignalBase> signalbase_from_channel(
+	shared_ptr<SignalBase> signalbase_from_channel(
 		shared_ptr<sigrok::Channel> channel) const;
 
 	static map<string, Glib::VariantBase> input_format_options(
 		vector<string> user_spec,
-		map<string, shared_ptr<Option>> fmt_opts);
+		map<string, shared_ptr<sigrok::Option>> fmt_opts);
 
 	void sample_thread_proc(function<void (const QString)> error_handler);
 
@@ -266,7 +278,7 @@ Q_SIGNALS:
 
 	void data_received();
 
-	void add_view(views::ViewType type, Session *session);
+	void add_view(ViewType type, Session *session);
 
 public Q_SLOTS:
 	void on_data_saved();
@@ -279,28 +291,28 @@ private:
 	bool shutting_down_;
 
 	DeviceManager &device_manager_;
-	shared_ptr<devices::Device> device_;
+	shared_ptr<Device> device_;
 	QString default_name_, name_;
 
-	vector< shared_ptr<views::ViewBase> > views_;
-	shared_ptr<pv::views::ViewBase> main_view_;
+	vector< shared_ptr<ViewBase> > views_;
+	shared_ptr<ViewBase> main_view_;
 
-	shared_ptr<pv::toolbars::MainBar> main_bar_;
+	shared_ptr<MainBar> main_bar_;
 
 	mutable mutex sampling_mutex_; //!< Protects access to capture_state_
 	capture_state capture_state_;
 
-	vector< shared_ptr<data::SignalBase> > signalbases_;
-	unordered_set< shared_ptr<data::SignalData> > all_signal_data_;
+	vector< shared_ptr<SignalBase> > signalbases_;
+	unordered_set< shared_ptr<SignalData> > all_signal_data_;
 
 	/// trigger_list_ contains pairs of <segment_id, timestamp> values
 	vector< std::pair<uint32_t, util::Timestamp> > trigger_list_;
 
 	mutable recursive_mutex data_mutex_;
-	shared_ptr<data::Logic> logic_data_;
+	shared_ptr<Logic> logic_data_;
 	uint64_t cur_samplerate_;
-	shared_ptr<data::LogicSegment> cur_logic_segment_;
-	map< shared_ptr<sigrok::Channel>, shared_ptr<data::AnalogSegment> >
+	shared_ptr<LogicSegment> cur_logic_segment_;
+	map< shared_ptr<sigrok::Channel>, shared_ptr<AnalogSegment> >
 		cur_analog_segments_;
 	int32_t highest_segment_id_;
 

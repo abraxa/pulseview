@@ -17,23 +17,22 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <algorithm>
-#include <cmath>
-
 #include <extdef.h>
 
-#include "timemarker.hpp"
-
-#include "pv/widgets/timestampspinbox.hpp"
-#include "ruler.hpp"
-#include "view.hpp"
+#include <algorithm>
+#include <cmath>
 
 #include <QApplication>
 #include <QFontMetrics>
 #include <QFormLayout>
 #include <QPainter>
 
-#include <pv/widgets/popup.hpp>
+#include "timemarker.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/views/trace/ruler.hpp"
+#include "pv/views/trace/view.hpp"
+#include "pv/widgets/popup.hpp"
+#include "pv/widgets/timestampspinbox.hpp"
 
 using std::max;
 using std::min;

@@ -20,14 +20,14 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_CURSORPAIR_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_CURSORPAIR_HPP
 
-#include "cursor.hpp"
-#include "pv/globalsettings.hpp"
-
 #include <memory>
 
 #include <QColor>
 #include <QPainter>
 #include <QRect>
+
+#include "pv/globalsettings.hpp"
+#include "pv/views/trace/cursor.hpp"
 
 using std::pair;
 using std::shared_ptr;

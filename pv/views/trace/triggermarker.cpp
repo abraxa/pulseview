@@ -17,8 +17,8 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "triggermarker.hpp"
-#include "view.hpp"
+#include "pv/views/trace/triggermarker.hpp"
+#include "pv/views/trace/view.hpp"
 
 namespace pv {
 namespace views {

@@ -28,8 +28,6 @@
 #include <type_traits>
 #include <vector>
 
-#include <pv/session.hpp>
-
 using std::dynamic_pointer_cast;
 using std::forward_iterator_tag;
 using std::shared_ptr;

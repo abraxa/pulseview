@@ -19,9 +19,9 @@
 
 #include <cassert>
 
-#include "tracetreeitem.hpp"
-#include "trace.hpp"
-#include "tracetreeitemowner.hpp"
+#include "pv/views/trace/tracetreeitem.hpp"
+#include "pv/views/trace/trace.hpp"
+#include "pv/views/trace/tracetreeitemowner.hpp"
 
 using std::find;
 using std::make_pair;

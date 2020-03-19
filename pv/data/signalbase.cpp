@@ -28,8 +28,8 @@
 
 #include <QDebug>
 
-#include <pv/binding/decoder.hpp>
-#include <pv/session.hpp>
+#include "pv/session.hpp"
+#include "pv/binding/decoder.hpp"
 
 using std::dynamic_pointer_cast;
 using std::make_shared;

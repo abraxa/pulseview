@@ -22,7 +22,7 @@
 #include <QApplication>
 #include <QFontMetrics>
 
-#include "viewitempaintparams.hpp"
+#include "pv/views/trace/viewitempaintparams.hpp"
 
 namespace pv {
 namespace views {

@@ -21,9 +21,10 @@
 #include <QMouseEvent>
 #include <QTouchEvent>
 
-#include "tracetreeitem.hpp"
-#include "view.hpp"
-#include "viewwidget.hpp"
+#include "pv/views/trace/timeitem.hpp"
+#include "pv/views/trace/tracetreeitem.hpp"
+#include "pv/views/trace/view.hpp"
+#include "pv/views/trace/viewwidget.hpp"
 
 using std::any_of;
 using std::shared_ptr;

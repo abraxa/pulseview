@@ -20,18 +20,16 @@
 #ifndef PULSEVIEW_PV_VIEWS_TRACEVIEW_TRACE_HPP
 #define PULSEVIEW_PV_VIEWS_TRACEVIEW_TRACE_HPP
 
+#include <cstdint>
+
 #include <QColor>
 #include <QPainter>
 #include <QPen>
 #include <QRect>
 #include <QString>
 
-#include <cstdint>
-
-#include "tracetreeitem.hpp"
-
-#include <pv/globalsettings.hpp>
-#include "pv/data/signalbase.hpp"
+#include "pv/globalsettings.hpp"
+#include "pv/views/trace/tracetreeitem.hpp"
 
 using std::shared_ptr;
 

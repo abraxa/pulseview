@@ -27,10 +27,8 @@
 
 #include <glib.h>
 
-#include <pv/data/signalbase.hpp>
-#include <pv/data/decode/row.hpp>
-
 using std::map;
+using std::shared_ptr;
 using std::string;
 using std::vector;
 
@@ -42,13 +40,14 @@ struct srd_session;
 namespace pv {
 
 namespace data {
-
 class Logic;
 class SignalBase;
 
 namespace decode {
-
 class Decoder;
+class Row;
+
+using pv::data::SignalBase;
 
 struct AnnotationClass
 {

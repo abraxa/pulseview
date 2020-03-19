@@ -18,13 +18,13 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "segment.hpp"
-
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
 
 #include <QDebug>
+
+#include "segment.hpp"  /* With the full path, lupdate can't find the header */
 
 using std::bad_alloc;
 using std::lock_guard;

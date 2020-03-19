@@ -29,9 +29,8 @@
 #include <QToolButton>
 #include <QWidget>
 
-#include <pv/session.hpp>
-
-#include "trace.hpp"
+#include "pv/session.hpp"
+#include "pv/views/trace/trace.hpp"
 
 namespace pv {
 

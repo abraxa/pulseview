@@ -37,7 +37,7 @@
 #include <QPainter>
 #include <QPaintEvent>
 
-#include "QHexView.hpp"
+#include "QHexView.hpp"  /* With the full path, lupdate can't find the header */
 
 const unsigned int BYTES_PER_LINE   = 16;
 const unsigned int HEXCHARS_IN_LINE = BYTES_PER_LINE * 3 - 1;
@@ -45,6 +45,9 @@ const unsigned int GAP_ADR_HEX      = 10;
 const unsigned int GAP_HEX_ASCII    = 10;
 const unsigned int GAP_ASCII_SLIDER = 5;
 
+namespace pv {
+namespace views {
+namespace decoder_binary {
 
 QHexView::QHexView(QWidget *parent):
 	QAbstractScrollArea(parent),
@@ -687,3 +690,7 @@ void QHexView::ensureVisible()
 		if(cursorY >= lastLineIdx)
 			verticalScrollBar()->setValue(cursorY - areaSize.height() / charHeight_ + 1);
 }
+
+} // namespace decoder_binary
+} // namespace views
+} // namespace pv

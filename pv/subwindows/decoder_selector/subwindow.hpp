@@ -30,7 +30,10 @@
 
 #include "pv/subwindows/subwindowbase.hpp"
 
+using std::vector;
 using std::shared_ptr;
+
+struct srd_decoder;
 
 namespace pv {
 namespace subwindows {

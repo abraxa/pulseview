@@ -27,7 +27,8 @@
 #include <QTouchEvent>
 
 #include "pv/util.hpp"
-#include "viewwidget.hpp"
+#include "pv/views/trace/viewitem.hpp"
+#include "pv/views/trace/viewwidget.hpp"
 
 using std::shared_ptr;
 using std::vector;

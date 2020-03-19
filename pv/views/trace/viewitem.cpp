@@ -17,13 +17,13 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "viewitem.hpp"
-
 #include <climits>
 
 #include <QApplication>
 #include <QMenu>
 #include <QPalette>
+
+#include "pv/views/trace/viewitem.hpp"
 
 namespace pv {
 namespace views {

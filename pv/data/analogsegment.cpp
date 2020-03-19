@@ -27,8 +27,9 @@
 
 #include <algorithm>
 
-#include "analog.hpp"
-#include "analogsegment.hpp"
+#include "analogsegment.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "pv/data/analog.hpp"
 
 using std::lock_guard;
 using std::recursive_mutex;

@@ -17,8 +17,6 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
-
 #include <glib.h>
 
 #include <QApplication>
@@ -41,19 +39,20 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 
-#include "settings.hpp"
-
-#include "pv/application.hpp"
-#include "pv/devicemanager.hpp"
-#include "pv/globalsettings.hpp"
-#include "pv/logging.hpp"
-#include "pv/widgets/colorbutton.hpp"
-
 #include <libsigrokcxx/libsigrokcxx.hpp>
 
 #ifdef ENABLE_DECODE
 #include <libsigrokdecode/libsigrokdecode.h>
 #endif
+
+#include "settings.hpp"  /* With the full path, lupdate can't find the header */
+
+#include "config.h"
+#include "pv/application.hpp"
+#include "pv/devicemanager.hpp"
+#include "pv/globalsettings.hpp"
+#include "pv/logging.hpp"
+#include "pv/widgets/colorbutton.hpp"
 
 using pv::widgets::ColorButton;
 

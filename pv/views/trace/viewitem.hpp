@@ -26,7 +26,7 @@
 #include <QPen>
 #include <QPoint>
 
-#include "viewitempaintparams.hpp"
+#include "pv/views/trace/viewitempaintparams.hpp"
 
 class QAction;
 class QMenu;

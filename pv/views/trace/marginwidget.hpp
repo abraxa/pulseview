@@ -24,7 +24,7 @@
 
 #include <QPoint>
 
-#include "viewwidget.hpp"
+#include "pv/views/trace/viewwidget.hpp"
 
 using std::shared_ptr;
 

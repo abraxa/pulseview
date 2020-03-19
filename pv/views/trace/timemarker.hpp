@@ -26,7 +26,7 @@
 #include <QRectF>
 #include <QWidgetAction>
 
-#include "timeitem.hpp"
+#include "pv/views/trace/timeitem.hpp"
 
 class QPainter;
 class QRect;

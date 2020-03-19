@@ -20,9 +20,9 @@
 #ifndef PULSEVIEW_PV_BINDING_DECODER_HPP
 #define PULSEVIEW_PV_BINDING_DECODER_HPP
 
-#include "binding.hpp"
+#include "binding.hpp"  /* With the full path, lupdate can't find the header */
 
-#include <pv/prop/property.hpp>
+#include "pv/prop/property.hpp"
 
 using std::shared_ptr;
 
